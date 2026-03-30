@@ -1,5 +1,5 @@
 import Link from "next/link";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
@@ -8,18 +8,31 @@ export const dynamic = "force-dynamic";
 
 export default async function CategoryShopPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params;
-  const db = getDb();
-  const cat = db.prepare(`SELECT * FROM categories WHERE slug = ?`).get(category) as
-    | { name: string; description: string | null }
-    | undefined;
-  const rows = db
-    .prepare(
-      `SELECT p.*, v.id as vid, v.price, v.size, v.compare_at FROM products p
-       JOIN variants v ON v.product_id = p.id AND v.is_default = 1
-       JOIN categories c ON c.id = p.category_id
-       WHERE p.is_active = 1 AND c.slug = ? ORDER BY p.name`
-    )
-    .all(category) as Array<Record<string, unknown>>;
+  const cat = await prisma.categories.findFirst({
+    where: { slug: category },
+    select: { id: true, name: true, description: true },
+  });
+  const products = await prisma.products.findMany({
+    where: {
+      is_active: 1,
+      ...(cat ? { category_id: cat.id } : { category_id: "__missing__" }),
+    },
+    orderBy: { name: "asc" },
+  });
+  const variants = await prisma.variants.findMany({
+    where: {
+      product_id: { in: products.map((p) => p.id) },
+      is_default: 1,
+    },
+  });
+  const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
+  const rows = products
+    .map((p) => {
+      const v = variantByProduct.get(p.id);
+      if (!v) return null;
+      return { ...p, vid: v.id, price: v.price, size: v.size, compare_at: v.compare_at };
+    })
+    .filter(Boolean) as Array<Record<string, unknown>>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">

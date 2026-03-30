@@ -1,5 +1,5 @@
 import Link from "next/link";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,8 +8,7 @@ import { FooterDisclaimer } from "@/components/ui/disclaimer";
 export const dynamic = "force-dynamic";
 
 export default async function BundlesPage() {
-  const db = getDb();
-  const bundles = db.prepare(`SELECT * FROM bundles WHERE is_active = 1`).all() as Array<Record<string, unknown>>;
+  const bundles = (await prisma.bundles.findMany({ where: { is_active: 1 } })) as Array<Record<string, unknown>>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">

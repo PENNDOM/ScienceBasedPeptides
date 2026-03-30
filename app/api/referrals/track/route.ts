@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { createReferralClick } from "@/lib/referral";
 
 const schema = z.object({
@@ -14,11 +14,13 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid" }, { status: 400 });
   }
-  const db = getDb();
-  const ref = db.prepare(`SELECT id FROM users WHERE referral_code = ?`).get(parsed.data.code) as { id: string } | undefined;
+  const ref = await prisma.users.findFirst({
+    where: { referral_code: parsed.data.code },
+    select: { id: true },
+  });
   if (!ref) {
     return NextResponse.json({ ok: true });
   }
-  createReferralClick(ref.id, parsed.data.email);
+  await createReferralClick(ref.id, parsed.data.email);
   return NextResponse.json({ ok: true });
 }

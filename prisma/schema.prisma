@@ -1,0 +1,264 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id                 String   @id
+  email              String   @unique
+  name               String?
+  phone              String?
+  password_hash      String
+  role               String   @default("customer")
+  loyalty_points     Int      @default(0)
+  referral_code      String   @unique
+  referred_by_id     String?
+  email_consent      Int      @default(0)
+  sms_consent        Int      @default(0)
+  reset_token        String?
+  reset_token_expires BigInt?
+  last_purchase_at   BigInt?
+  created_at         BigInt   @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model addresses {
+  id         String @id
+  user_id    String
+  label      String?
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  zip        String
+  country    String @default("US")
+  is_default Int    @default(0)
+  created_at BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model categories {
+  id           String  @id
+  name         String
+  slug         String  @unique
+  description  String?
+  display_order Int    @default(0)
+}
+
+model products {
+  id                   String  @id
+  name                 String
+  slug                 String  @unique
+  description          String
+  short_description    String?
+  scientific_name      String?
+  category_id          String
+  images               String  @default("[]")
+  base_price           Float
+  compare_price_at     Float?
+  cost_of_goods        Float?
+  sku                  String  @unique
+  purity               Float?
+  molecular_formula    String?
+  cas_number           String?
+  storage_instructions String?
+  cycle_length_days    Int?
+  is_active            Int     @default(1)
+  is_featured          Int     @default(0)
+  is_best_seller       Int     @default(0)
+  subscription_eligible Int    @default(1)
+  subscription_discount Float  @default(0.15)
+  sold_count           Int     @default(0)
+  seo_title            String?
+  seo_description      String?
+  tags                 String  @default("[]")
+  created_at           BigInt  @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model variants {
+  id                  String @id
+  product_id          String
+  size                String
+  price               Float
+  compare_at          Float?
+  sku                 String @unique
+  stock_qty           Int    @default(0)
+  low_stock_threshold Int    @default(10)
+  is_default          Int    @default(0)
+  display_order       Int    @default(0)
+}
+
+model bundles {
+  id               String @id
+  name             String
+  slug             String @unique
+  description      String?
+  price            Float
+  compare_at       Float
+  discount_percent Float
+  image            String?
+  is_active        Int    @default(1)
+  created_at       BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model bundle_items {
+  id         String @id
+  bundle_id  String
+  product_id String
+  variant_id String
+  quantity   Int    @default(1)
+}
+
+model orders {
+  id                    String  @id
+  user_id               String?
+  guest_email           String?
+  status                String  @default("pending_payment")
+  items                 String  @default("[]")
+  subtotal              Float
+  discount_amount       Float   @default(0)
+  discount_code         String?
+  shipping_cost         Float   @default(0)
+  tax                   Float   @default(0)
+  total                 Float
+  shipping_address      String
+  tracking_number       String?
+  tracking_carrier      String?
+  tracking_url          String?
+  is_subscription_order Int     @default(0)
+  loyalty_points_earned Int     @default(0)
+  loyalty_points_used   Int     @default(0)
+  crypto_currency       String?
+  crypto_amount         Float?
+  crypto_wallet_sent_to String?
+  crypto_tx_hash        String?
+  admin_notes           String?
+  created_at            BigInt  @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+  confirmed_at          BigInt?
+  shipped_at            BigInt?
+  delivered_at          BigInt?
+}
+
+model subscriptions {
+  id               String @id
+  user_id          String
+  status           String @default("active")
+  interval_days    Int    @default(30)
+  next_billing_date BigInt
+  discount_percent Float  @default(0.15)
+  paused_until     BigInt?
+  cancel_reason    String?
+  created_at       BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+  cancelled_at     BigInt?
+}
+
+model subscription_items {
+  id              String @id
+  subscription_id String
+  product_id      String
+  variant_id      String
+  quantity        Int    @default(1)
+  unit_price      Float
+}
+
+model discount_codes {
+  id                   String @id
+  code                 String @unique
+  type                 String
+  value                Float
+  min_order_value      Float?
+  max_uses             Int?
+  used_count           Int    @default(0)
+  expires_at           BigInt?
+  is_active            Int    @default(1)
+  applicable_product_ids String @default("[]")
+  created_at           BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model loyalty_transactions {
+  id         String @id
+  user_id    String
+  points     Int
+  reason     String
+  order_id   String?
+  created_at BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model reviews {
+  id          String @id
+  product_id  String
+  user_id     String
+  order_id    String?
+  rating      Int
+  title       String?
+  body        String
+  is_verified Int    @default(0)
+  is_approved Int    @default(0)
+  created_at  BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model lab_reports {
+  id           String @id
+  product_id   String
+  batch_number String
+  lab_name     String
+  purity       Float
+  report_url   String
+  tested_at    BigInt
+  is_current   Int    @default(1)
+  created_at   BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model email_sequences {
+  id           String @id
+  user_id      String
+  sequence_type String
+  reference_id String?
+  current_step Int    @default(0)
+  last_sent_at BigInt?
+  completed    Int    @default(0)
+  created_at   BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}
+
+model referrals {
+  id               String @id
+  referrer_id      String
+  referred_email   String?
+  referred_user_id String?
+  status           String @default("clicked")
+  points_awarded   Int    @default(0)
+  created_at       BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+  converted_at     BigInt?
+}
+
+model abandoned_carts {
+  id          String @id
+  user_id     String?
+  guest_email String?
+  cart_data   String
+  email_step  Int    @default(0)
+  last_updated BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+  recovered   Int    @default(0)
+}
+
+model related_products {
+  product_id   String
+  related_id   String
+  relation_type String @default("related")
+
+  @@id([product_id, related_id])
+}
+
+model newsletter_signups {
+  id         String @id
+  email      String @unique
+  consent    Int    @default(1)
+  created_at BigInt @default(dbgenerated("(EXTRACT(EPOCH FROM NOW()))::bigint"))
+}

@@ -16,12 +16,12 @@ export async function GET(req: Request) {
 
   const email = process.env.ADMIN_EMAIL;
 
-  const r1 = processEmailSequences();
-  const r2 = createSubscriptionOrdersDue();
-  const r3 = scheduleWinBackForInactiveUsers();
-  const r4 = startAbandonmentForStaleCarts();
-  const r5 = alertLowStock(email);
-  const r6 = expireInactiveLoyalty();
+  const r1 = await processEmailSequences();
+  const r2 = await createSubscriptionOrdersDue();
+  const r3 = await scheduleWinBackForInactiveUsers();
+  const r4 = await startAbandonmentForStaleCarts();
+  const r5 = await alertLowStock(email);
+  const r6 = await expireInactiveLoyalty();
 
   return NextResponse.json({
     ok: true,

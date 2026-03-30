@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import getDb from "@/db/index";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,32 +8,28 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { parseJsonArray } from "@/lib/utils";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const db = getDb();
-  const featured = db
-    .prepare(
-      `SELECT p.*, v.id as vid, v.price, v.size, v.compare_at FROM products p
-       JOIN variants v ON v.product_id = p.id AND v.is_default = 1
-       WHERE p.is_active = 1 AND p.is_featured = 1 ORDER BY p.name LIMIT 4`
-    )
-    .all() as Array<Record<string, unknown>>;
+  const featured = (await prisma.$queryRawUnsafe(`
+      SELECT p.*, v.id as vid, v.price, v.size, v.compare_at FROM products p
+      JOIN variants v ON v.product_id = p.id AND v.is_default = 1
+      WHERE p.is_active = 1 AND p.is_featured = 1 ORDER BY p.name LIMIT 4
+    `)) as Array<Record<string, unknown>>;
 
-  const best = db
-    .prepare(
-      `SELECT p.*, v.id as vid, v.price, v.size FROM products p
-       JOIN variants v ON v.product_id = p.id AND v.is_default = 1
-       WHERE p.is_active = 1 AND p.is_best_seller = 1 ORDER BY p.sold_count DESC LIMIT 8`
-    )
-    .all() as Array<Record<string, unknown>>;
+  const best = (await prisma.$queryRawUnsafe(`
+      SELECT p.*, v.id as vid, v.price, v.size FROM products p
+      JOIN variants v ON v.product_id = p.id AND v.is_default = 1
+      WHERE p.is_active = 1 AND p.is_best_seller = 1 ORDER BY p.sold_count DESC LIMIT 8
+    `)) as Array<Record<string, unknown>>;
 
-  const reviews = db
-    .prepare(
-      `SELECT r.rating, r.title, r.body, u.name FROM reviews r JOIN users u ON u.id = r.user_id WHERE r.is_approved = 1 ORDER BY r.created_at DESC LIMIT 3`
-    )
-    .all() as Array<{ rating: number; title: string | null; body: string; name: string | null }>;
+  const reviews = (await prisma.$queryRawUnsafe(`
+      SELECT r.rating, r.title, r.body, u.name FROM reviews r
+      JOIN users u ON u.id = r.user_id
+      WHERE r.is_approved = 1 ORDER BY r.created_at DESC LIMIT 3
+    `)) as Array<{ rating: number; title: string | null; body: string; name: string | null }>;
 
   const articles = [
     { slug: "peptide-purity-basics", title: "Understanding peptide purity in research materials" },

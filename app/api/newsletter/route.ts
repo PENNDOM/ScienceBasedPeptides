@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
   email: z.string().email(),
@@ -14,13 +14,15 @@ export async function POST(req: Request) {
   if (!parsed.success || !parsed.data.consent) {
     return NextResponse.json({ error: "Invalid" }, { status: 400 });
   }
-  const db = getDb();
   const id = nanoid();
   try {
-    db.prepare(`INSERT INTO newsletter_signups (id, email, consent) VALUES (?, ?, 1)`).run(
-      id,
-      parsed.data.email.toLowerCase()
-    );
+    await prisma.newsletter_signups.create({
+      data: {
+        id,
+        email: parsed.data.email.toLowerCase(),
+        consent: 1,
+      },
+    });
   } catch {
     return NextResponse.json({ ok: true });
   }

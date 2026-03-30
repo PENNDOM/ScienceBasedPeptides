@@ -1,5 +1,5 @@
 import Link from "next/link";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
@@ -8,8 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function OrderConfirmationPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
-  const db = getDb();
-  const order = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(orderId) as Record<string, unknown> | undefined;
+  const order = (await prisma.orders.findFirst({ where: { id: orderId } })) as Record<string, unknown> | undefined;
   if (!order) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">

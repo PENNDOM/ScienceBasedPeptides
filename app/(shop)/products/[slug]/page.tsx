@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { ProductPdp } from "@/components/shop/product-pdp";
 import { parseJsonArray } from "@/lib/utils";
 import { productJsonLd, siteMetadata } from "@/lib/seo";
@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(ctx: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await ctx.params;
-  const db = getDb();
-  const p = db.prepare(`SELECT name, seo_title, seo_description, base_price FROM products WHERE slug = ?`).get(slug) as
-    | { name: string; seo_title: string | null; seo_description: string | null; base_price: number }
-    | undefined;
+  const p = await prisma.products.findFirst({
+    where: { slug },
+    select: { name: true, seo_title: true, seo_description: true, base_price: true },
+  });
   if (!p) return siteMetadata();
   return {
     ...siteMetadata({
@@ -24,45 +24,45 @@ export async function generateMetadata(ctx: { params: Promise<{ slug: string }> 
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const db = getDb();
-  const p = db
-    .prepare(
-      `SELECT p.*, c.name AS category_name, c.slug AS category_slug FROM products p
-       JOIN categories c ON c.id = p.category_id WHERE p.slug = ? AND p.is_active = 1`
-    )
-    .get(slug) as Record<string, unknown> | undefined;
+  const p = await prisma.products.findFirst({
+    where: { slug, is_active: 1 },
+  });
   if (!p) notFound();
+  const category = await prisma.categories.findFirst({
+    where: { id: p.category_id },
+    select: { name: true, slug: true },
+  });
 
-  const variants = db
-    .prepare(`SELECT * FROM variants WHERE product_id = ? ORDER BY display_order ASC`)
-    .all(p.id) as Array<Record<string, unknown>>;
+  const variants = await prisma.variants.findMany({
+    where: { product_id: p.id },
+    orderBy: { display_order: "asc" },
+  });
 
-  const labs = db
-    .prepare(`SELECT * FROM lab_reports WHERE product_id = ? ORDER BY tested_at DESC`)
-    .all(p.id) as Array<Record<string, unknown>>;
+  const labs = await prisma.lab_reports.findMany({
+    where: { product_id: p.id },
+    orderBy: { tested_at: "desc" },
+  });
 
-  const reviews = db
-    .prepare(
-      `SELECT r.*, u.name AS user_name FROM reviews r JOIN users u ON u.id = r.user_id
-       WHERE r.product_id = ? AND r.is_approved = 1 ORDER BY r.created_at DESC LIMIT 50`
-    )
-    .all(p.id) as Array<Record<string, unknown>>;
+  const reviewsRows = (await prisma.$queryRawUnsafe(
+    `SELECT r.*, u.name AS user_name FROM reviews r JOIN users u ON u.id = r.user_id
+     WHERE r.product_id = $1 AND r.is_approved = 1 ORDER BY r.created_at DESC LIMIT 50`,
+    p.id
+  )) as Array<Record<string, unknown>>;
 
-  const related = db
-    .prepare(
-      `SELECT p2.id, p2.name, p2.slug, p2.short_description, p2.images, v.price, v.id AS variant_id, v.size
-       FROM related_products rp
-       JOIN products p2 ON p2.id = rp.related_id
-       JOIN variants v ON v.product_id = p2.id AND v.is_default = 1
-       WHERE rp.product_id = ? LIMIT 12`
-    )
-    .all(p.id) as Array<Record<string, unknown>>;
+  const related = (await prisma.$queryRawUnsafe(
+    `SELECT p2.id, p2.name, p2.slug, p2.short_description, p2.images, v.price, v.id AS variant_id, v.size
+     FROM related_products rp
+     JOIN products p2 ON p2.id = rp.related_id
+     JOIN variants v ON v.product_id = p2.id AND v.is_default = 1
+     WHERE rp.product_id = $1 LIMIT 12`,
+    p.id
+  )) as Array<Record<string, unknown>>;
 
   const jsonLd = productJsonLd({
     name: p.name as string,
-    description: (p.short_description as string) || (p.description as string),
-    slug: p.slug as string,
-    price: variants[0] ? (variants[0].price as number) : (p.base_price as number),
+    description: p.short_description || p.description,
+    slug: p.slug,
+    price: variants[0] ? variants[0].price : p.base_price,
   });
 
   return (
@@ -71,22 +71,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <ProductPdp
         product={{
           id: p.id as string,
-          name: p.name as string,
-          slug: p.slug as string,
-          description: p.description as string,
-          shortDescription: p.short_description as string | null,
-          scientificName: p.scientific_name as string | null,
-          categoryName: p.category_name as string,
-          categorySlug: p.category_slug as string,
-          images: parseJsonArray<string>(p.images as string, []),
-          purity: p.purity as number | null,
-          molecularFormula: p.molecular_formula as string | null,
-          casNumber: p.cas_number as string | null,
-          storageInstructions: p.storage_instructions as string | null,
-          cycleLengthDays: p.cycle_length_days as number | null,
+          name: p.name,
+          slug: p.slug,
+          description: p.description,
+          shortDescription: p.short_description,
+          scientificName: p.scientific_name,
+          categoryName: category?.name ?? "",
+          categorySlug: category?.slug ?? "",
+          images: parseJsonArray<string>(p.images, []),
+          purity: p.purity,
+          molecularFormula: p.molecular_formula,
+          casNumber: p.cas_number,
+          storageInstructions: p.storage_instructions,
+          cycleLengthDays: p.cycle_length_days,
           subscriptionEligible: Boolean(p.subscription_eligible),
-          subscriptionDiscount: p.subscription_discount as number,
-          tags: parseJsonArray<string>(p.tags as string, []),
+          subscriptionDiscount: p.subscription_discount,
+          tags: parseJsonArray<string>(p.tags, []),
         }}
         variants={variants.map((v) => ({
           id: v.id as string,
@@ -101,10 +101,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           batchNumber: l.batch_number as string,
           purity: l.purity as number,
           reportUrl: l.report_url as string,
-          testedAt: l.tested_at as number,
+          testedAt: Number(l.tested_at),
           isCurrent: Boolean(l.is_current),
         }))}
-        reviews={reviews.map((r) => ({
+        reviews={reviewsRows.map((r) => ({
           id: r.id as string,
           rating: r.rating as number,
           title: r.title as string | null,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
@@ -12,33 +12,56 @@ export default async function ShopPage({
   searchParams: Promise<{ category?: string; sort?: string; q?: string }>;
 }) {
   const sp = await searchParams;
-  const db = getDb();
-  let sql = `
-    SELECT p.*, v.id as vid, v.price, v.size, v.compare_at, c.slug as cat_slug
-    FROM products p
-    JOIN variants v ON v.product_id = p.id AND v.is_default = 1
-    JOIN categories c ON c.id = p.category_id
-    WHERE p.is_active = 1`;
-  const params: unknown[] = [];
-  if (sp.category) {
-    sql += ` AND c.slug = ?`;
-    params.push(sp.category);
-  }
-  if (sp.q) {
-    sql += ` AND (p.name LIKE ? OR p.description LIKE ?)`;
-    const q = `%${sp.q}%`;
-    params.push(q, q);
-  }
-  const sort = sp.sort ?? "featured";
-  const orderMap: Record<string, string> = {
-    price_asc: "v.price ASC",
-    price_desc: "v.price DESC",
-    newest: "p.created_at DESC",
-    best_seller: "p.sold_count DESC",
-    featured: "p.is_featured DESC, p.name ASC",
+  const category = sp.category
+    ? await prisma.categories.findFirst({ where: { slug: sp.category } })
+    : null;
+
+  const where = {
+    is_active: 1,
+    ...(category ? { category_id: category.id } : {}),
+    ...(sp.q
+      ? {
+          OR: [
+            { name: { contains: sp.q, mode: "insensitive" as const } },
+            { description: { contains: sp.q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
   };
-  sql += ` ORDER BY ${orderMap[sort] ?? orderMap.featured}`;
-  const rows = db.prepare(sql).all(...params) as Array<Record<string, unknown>>;
+  const sort = sp.sort ?? "featured";
+  const orderMap: Record<string, { field: "created_at" | "sold_count" | "name"; dir: "asc" | "desc" }[]> = {
+    price_asc: [{ field: "name", dir: "asc" }],
+    price_desc: [{ field: "name", dir: "asc" }],
+    newest: [{ field: "created_at", dir: "desc" }],
+    best_seller: [{ field: "sold_count", dir: "desc" }],
+    featured: [
+      { field: "name", dir: "asc" },
+      { field: "sold_count", dir: "desc" },
+    ],
+  };
+  const products = await prisma.products.findMany({
+    where,
+    orderBy: (orderMap[sort] ?? orderMap.featured).map((o) => ({ [o.field]: o.dir })),
+  });
+  const variants = await prisma.variants.findMany({
+    where: {
+      product_id: { in: products.map((p) => p.id) },
+      is_default: 1,
+    },
+  });
+  const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
+  const rows = products
+    .map((p) => {
+      const v = variantByProduct.get(p.id);
+      if (!v) return null;
+      return { ...p, vid: v.id, price: v.price, size: v.size, compare_at: v.compare_at };
+    })
+    .filter(Boolean) as Array<Record<string, unknown>>;
+  if (sort === "price_asc") {
+    rows.sort((a, b) => Number(a.price) - Number(b.price));
+  } else if (sort === "price_desc") {
+    rows.sort((a, b) => Number(b.price) - Number(a.price));
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { comparePassword, setAuthCookie, signToken } from "@/lib/auth";
-import type { UserRow } from "@/lib/db";
 
 const schema = z.object({
   email: z.string().email(),
@@ -16,8 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
   }
   const { email, password } = parsed.data;
-  const db = getDb();
-  const user = db.prepare(`SELECT * FROM users WHERE email = ?`).get(email.toLowerCase()) as UserRow | undefined;
+  const user = await prisma.users.findFirst({ where: { email: email.toLowerCase() } });
   if (!user || !comparePassword(password, user.password_hash)) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }

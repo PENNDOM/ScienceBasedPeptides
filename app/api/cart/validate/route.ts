@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import type { CartItem } from "@/lib/cart";
 import { calculateTotals } from "@/lib/cart";
 
@@ -31,50 +31,52 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid cart", details: parsed.error.flatten() }, { status: 400 });
   }
   const { items, discount, loyaltyPointsToRedeem = 0, isSubscription = false } = parsed.data;
-  const db = getDb();
   const enriched: CartItem[] = [];
   const issues: string[] = [];
 
+  const variantRows = await prisma.variants.findMany({
+    where: {
+      id: { in: items.map((line) => line.variantId) },
+      product_id: { in: items.map((line) => line.productId) },
+    },
+  });
+  const products = await prisma.products.findMany({
+    where: { id: { in: variantRows.map((v) => v.product_id) } },
+    select: { id: true, name: true, slug: true, images: true, subscription_eligible: true },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+  const variantMap = new Map(
+    variantRows.map((v) => {
+      const p = productMap.get(v.product_id);
+      return [`${v.id}:${v.product_id}`, p ? { ...v, product: p } : null];
+    })
+  );
+
   for (const line of items) {
-    const v = db
-      .prepare(
-        `SELECT v.*, p.name, p.slug, p.images, p.subscription_eligible FROM variants v JOIN products p ON p.id = v.product_id WHERE v.id = ? AND p.id = ?`
-      )
-      .get(line.variantId, line.productId) as
-      | {
-          id: string;
-          stock_qty: number;
-          price: number;
-          size: string;
-          name: string;
-          slug: string;
-          images: string;
-          subscription_eligible: number;
-        }
-      | undefined;
+    const v = variantMap.get(`${line.variantId}:${line.productId}`);
     if (!v) {
       issues.push(`Invalid line: ${line.variantId}`);
       continue;
     }
     if (v.stock_qty < line.quantity) {
-      issues.push(`Insufficient stock for ${v.name} (${v.size})`);
+      issues.push(`Insufficient stock for ${v.product.name} (${v.size})`);
     }
     let imgs: string[] = [];
     try {
-      imgs = JSON.parse(v.images) as string[];
+      imgs = JSON.parse(v.product.images) as string[];
     } catch {
       imgs = [];
     }
     enriched.push({
       productId: line.productId,
       variantId: line.variantId,
-      name: v.name,
-      slug: v.slug,
+      name: v.product.name,
+      slug: v.product.slug,
       size: v.size,
       price: v.price,
       image: imgs[0] ?? "/placeholder-peptide.svg",
       quantity: line.quantity,
-      subscriptionEligible: Boolean(v.subscription_eligible),
+      subscriptionEligible: Boolean(v.product.subscription_eligible),
     });
   }
 

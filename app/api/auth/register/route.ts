@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { hashPassword, setAuthCookie, signToken } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/email";
 import { attributeRegistration } from "@/lib/referral";
@@ -20,8 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const { email, password, name, referralCode } = parsed.data;
-  const db = getDb();
-  const exists = db.prepare(`SELECT id FROM users WHERE email = ?`).get(email.toLowerCase());
+  const exists = await prisma.users.findFirst({ where: { email: email.toLowerCase() }, select: { id: true } });
   if (exists) {
     return NextResponse.json({ error: "Email already registered" }, { status: 409 });
   }
@@ -31,23 +30,31 @@ export async function POST(req: Request) {
   const hash = hashPassword(password);
   const welcomePoints = 500;
 
-  db.prepare(
-    `INSERT INTO users (id, email, name, password_hash, role, loyalty_points, referral_code, email_consent)
-     VALUES (?, ?, ?, ?, 'customer', ?, ?, 1)`
-  ).run(id, email.toLowerCase(), name ?? null, hash, welcomePoints, referral_code);
-
   const lt = nanoid();
-  db.prepare(
-    `INSERT INTO loyalty_transactions (id, user_id, points, reason, order_id) VALUES (?, ?, ?, 'signup_bonus', NULL)`
-  ).run(lt, id, welcomePoints);
-
   const seq = nanoid();
-  db.prepare(
-    `INSERT INTO email_sequences (id, user_id, sequence_type, current_step, completed) VALUES (?, ?, 'welcome', 0, 0)`
-  ).run(seq, id);
+  await prisma.$transaction([
+    prisma.users.create({
+      data: {
+        id,
+        email: email.toLowerCase(),
+        name: name ?? null,
+        password_hash: hash,
+        role: "customer",
+        loyalty_points: welcomePoints,
+        referral_code,
+        email_consent: 1,
+      },
+    }),
+    prisma.loyalty_transactions.create({
+      data: { id: lt, user_id: id, points: welcomePoints, reason: "signup_bonus", order_id: null },
+    }),
+    prisma.email_sequences.create({
+      data: { id: seq, user_id: id, sequence_type: "welcome", current_step: 0, completed: 0 },
+    }),
+  ]);
 
   if (referralCode) {
-    attributeRegistration(id, referralCode);
+    await attributeRegistration(id, referralCode);
   }
 
   const token = signToken({ userId: id, email: email.toLowerCase(), role: "customer" });

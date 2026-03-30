@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { awardPointsForOrder } from "@/lib/loyalty";
 import { markReferralConverted } from "@/lib/referral";
@@ -24,8 +24,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const db = getDb();
-  const order = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(id) as
+  const order = (await prisma.orders.findFirst({ where: { id } })) as
     | {
         id: string;
         user_id: string | null;
@@ -42,35 +41,33 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const now = Math.floor(Date.now() / 1000);
 
   if (parsed.data.status === "confirmed" && order.status !== "confirmed") {
-    db.prepare(`UPDATE orders SET status = 'confirmed', confirmed_at = ? WHERE id = ?`).run(now, id);
+    await prisma.orders.update({ where: { id }, data: { status: "confirmed", confirmed_at: now } });
     if (order.user_id) {
-      const pts = awardPointsForOrder({
+      const pts = await awardPointsForOrder({
         userId: order.user_id,
         orderId: id,
         orderTotalUsd: order.total,
         isSubscription: Boolean(order.is_subscription_order),
       });
-      db.prepare(`UPDATE orders SET loyalty_points_earned = ? WHERE id = ?`).run(pts, id);
-      db.prepare(`UPDATE users SET last_purchase_at = ? WHERE id = ?`).run(now, order.user_id);
-      markReferralConverted(order.user_id);
+      await prisma.orders.update({ where: { id }, data: { loyalty_points_earned: pts } });
+      await prisma.users.update({ where: { id: order.user_id }, data: { last_purchase_at: now } });
+      await markReferralConverted(order.user_id);
     }
   }
 
   if (parsed.data.trackingNumber && parsed.data.trackingCarrier) {
-    db.prepare(
-      `UPDATE orders SET tracking_number = ?, tracking_carrier = ?, tracking_url = ?, status = 'shipped', shipped_at = ? WHERE id = ?`
-    ).run(
-      parsed.data.trackingNumber,
-      parsed.data.trackingCarrier,
-      parsed.data.trackingUrl ?? null,
-      now,
-      id
-    );
+    await prisma.orders.update({
+      where: { id },
+      data: {
+        tracking_number: parsed.data.trackingNumber,
+        tracking_carrier: parsed.data.trackingCarrier,
+        tracking_url: parsed.data.trackingUrl ?? null,
+        status: "shipped",
+        shipped_at: now,
+      },
+    });
     const u = order.user_id
-      ? (db.prepare(`SELECT email, name FROM users WHERE id = ?`).get(order.user_id) as {
-          email: string;
-          name: string | null;
-        })
+      ? await prisma.users.findFirst({ where: { id: order.user_id }, select: { email: true, name: true } })
       : null;
     if (u) {
       void sendOrderShippedEmail({
@@ -85,7 +82,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   if (parsed.data.status === "delivered") {
-    db.prepare(`UPDATE orders SET status = 'delivered', delivered_at = ? WHERE id = ?`).run(now, id);
+    await prisma.orders.update({ where: { id }, data: { status: "delivered", delivered_at: now } });
   }
 
   return NextResponse.json({ ok: true });

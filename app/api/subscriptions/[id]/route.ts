@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 const patchSchema = z.object({
@@ -22,8 +22,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
-  const db = getDb();
-  const sub = db.prepare(`SELECT * FROM subscriptions WHERE id = ? AND user_id = ?`).get(id, user.userId) as
+  const sub = (await prisma.subscriptions.findFirst({ where: { id, user_id: user.userId } })) as
     | Record<string, unknown>
     | undefined;
   if (!sub) {
@@ -36,35 +35,32 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
   const d = parsed.data;
   if (d.intervalDays) {
-    db.prepare(`UPDATE subscriptions SET interval_days = ? WHERE id = ?`).run(d.intervalDays, id);
+    await prisma.subscriptions.update({ where: { id }, data: { interval_days: d.intervalDays } });
   }
   if (d.pauseUntil) {
-    db.prepare(`UPDATE subscriptions SET status = 'paused', paused_until = ? WHERE id = ?`).run(d.pauseUntil, id);
+    await prisma.subscriptions.update({ where: { id }, data: { status: "paused", paused_until: d.pauseUntil } });
   }
   if (d.skipNext) {
     const interval = sub.interval_days as number;
-    db.prepare(`UPDATE subscriptions SET next_billing_date = next_billing_date + ? WHERE id = ?`).run(
-      interval * 86400,
-      id
-    );
+    await prisma.subscriptions.update({
+      where: { id },
+      data: { next_billing_date: { increment: interval * 86400 } },
+    });
   }
   if (d.swap) {
-    const v = db
-      .prepare(`SELECT price FROM variants WHERE id = ?`)
-      .get(d.swap.variantId) as { price: number } | undefined;
+    const v = await prisma.variants.findFirst({ where: { id: d.swap.variantId }, select: { price: true } });
     if (v) {
-      db.prepare(`UPDATE subscription_items SET variant_id = ?, unit_price = ? WHERE id = ? AND subscription_id = ?`).run(
-        d.swap.variantId,
-        v.price,
-        d.swap.itemId,
-        id
-      );
+      await prisma.subscription_items.updateMany({
+        where: { id: d.swap.itemId, subscription_id: id },
+        data: { variant_id: d.swap.variantId, unit_price: v.price },
+      });
     }
   }
   if (d.cancelReason) {
-    db.prepare(
-      `UPDATE subscriptions SET status = 'cancelled', cancel_reason = ?, cancelled_at = unixepoch() WHERE id = ?`
-    ).run(d.cancelReason, id);
+    await prisma.subscriptions.update({
+      where: { id },
+      data: { status: "cancelled", cancel_reason: d.cancelReason, cancelled_at: Math.floor(Date.now() / 1000) },
+    });
   }
   return NextResponse.json({ ok: true });
 }
@@ -75,13 +71,13 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
-  const db = getDb();
-  const sub = db.prepare(`SELECT id FROM subscriptions WHERE id = ? AND user_id = ?`).get(id, user.userId);
+  const sub = await prisma.subscriptions.findFirst({ where: { id, user_id: user.userId }, select: { id: true } });
   if (!sub) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  db.prepare(
-    `UPDATE subscriptions SET status = 'cancelled', cancelled_at = unixepoch(), cancel_reason = 'user_cancelled' WHERE id = ?`
-  ).run(id);
+  await prisma.subscriptions.update({
+    where: { id },
+    data: { status: "cancelled", cancelled_at: Math.floor(Date.now() / 1000), cancel_reason: "user_cancelled" },
+  });
   return NextResponse.json({ ok: true });
 }

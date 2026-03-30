@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseJsonArray } from "@/lib/utils";
 
@@ -13,7 +13,6 @@ export async function GET(req: Request) {
   const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 48));
   const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
 
-  const db = getDb();
   let sql = `
     SELECT p.*, c.slug AS category_slug, c.name AS category_name,
       v.id AS variant_id, v.size AS variant_size, v.price AS variant_price, v.compare_at AS variant_compare,
@@ -25,14 +24,16 @@ export async function GET(req: Request) {
     WHERE p.is_active = 1
   `;
   const params: unknown[] = [];
+  let idx = 1;
   if (category) {
-    sql += ` AND c.slug = ?`;
+    sql += ` AND c.slug = $${idx++}`;
     params.push(category);
   }
   if (search) {
-    sql += ` AND (p.name LIKE ? OR p.description LIKE ? OR p.scientific_name LIKE ?)`;
+    sql += ` AND (p.name ILIKE $${idx} OR p.description ILIKE $${idx + 1} OR p.scientific_name ILIKE $${idx + 2})`;
     const q = `%${search}%`;
     params.push(q, q, q);
+    idx += 3;
   }
 
   const orderMap: Record<string, string> = {
@@ -43,10 +44,10 @@ export async function GET(req: Request) {
     featured: "p.is_featured DESC, p.is_best_seller DESC, p.name ASC",
   };
   sql += ` ORDER BY ${orderMap[sort] ?? orderMap.featured}`;
-  sql += ` LIMIT ? OFFSET ?`;
+  sql += ` LIMIT $${idx++} OFFSET $${idx++}`;
   params.push(limit, offset);
 
-  const rows = db.prepare(sql).all(...params) as Array<Record<string, unknown>>;
+  const rows = (await prisma.$queryRawUnsafe(sql, ...params)) as Array<Record<string, unknown>>;
   const products = rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -96,15 +97,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const d = parsed.data;
-  const db = getDb();
   const id = nanoid();
   const vid = nanoid();
-  db.prepare(
-    `INSERT INTO products (id, name, slug, description, category_id, images, base_price, sku, is_active, tags)
-     VALUES (?, ?, ?, ?, ?, '[]', ?, ?, 1, '[]')`
-  ).run(id, d.name, d.slug, d.description, d.categoryId, d.basePrice, d.sku);
-  db.prepare(
-    `INSERT INTO variants (id, product_id, size, price, sku, stock_qty, is_default, display_order) VALUES (?, ?, 'Default', ?, ?, 0, 1, 0)`
-  ).run(vid, id, d.basePrice, `${d.sku}-DEF`);
+  await prisma.$transaction([
+    prisma.products.create({
+      data: {
+        id,
+        name: d.name,
+        slug: d.slug,
+        description: d.description,
+        category_id: d.categoryId,
+        images: "[]",
+        base_price: d.basePrice,
+        sku: d.sku,
+        is_active: 1,
+        tags: "[]",
+      },
+    }),
+    prisma.variants.create({
+      data: {
+        id: vid,
+        product_id: id,
+        size: "Default",
+        price: d.basePrice,
+        sku: `${d.sku}-DEF`,
+        stock_qty: 0,
+        is_default: 1,
+        display_order: 0,
+      },
+    }),
+  ]);
   return NextResponse.json({ id, variantId: vid });
 }

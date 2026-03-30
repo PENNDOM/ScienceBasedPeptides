@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { parseJsonArray } from "@/lib/utils";
 
 const schema = z.object({
@@ -15,22 +15,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
   const { code, subtotal } = parsed.data;
-  const db = getDb();
-  const row = db
-    .prepare(`SELECT * FROM discount_codes WHERE UPPER(code) = UPPER(?) AND is_active = 1`)
-    .get(code) as
-    | {
-        id: string;
-        code: string;
-        type: string;
-        value: number;
-        min_order_value: number | null;
-        max_uses: number | null;
-        used_count: number;
-        expires_at: number | null;
-        applicable_product_ids: string | null;
-      }
-    | undefined;
+  const row = await prisma.discount_codes.findFirst({
+    where: {
+      code: { equals: code, mode: "insensitive" },
+      is_active: 1,
+    },
+  });
 
   if (!row) {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });

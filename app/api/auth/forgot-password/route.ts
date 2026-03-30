@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 
 const schema = z.object({
@@ -16,13 +16,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
   const email = parsed.data.email.toLowerCase();
-  const db = getDb();
-  const user = db.prepare(`SELECT id FROM users WHERE email = ?`).get(email) as { id: string } | undefined;
+  const user = await prisma.users.findFirst({ where: { email }, select: { id: true } });
   if (user) {
     const raw = nanoid(48);
     const hash = bcrypt.hashSync(raw, 12);
     const exp = Math.floor(Date.now() / 1000) + 3600;
-    db.prepare(`UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?`).run(hash, exp, user.id);
+    await prisma.users.update({
+      where: { id: user.id },
+      data: { reset_token: hash, reset_token_expires: exp },
+    });
     void sendPasswordResetEmail(email, raw);
   }
   return NextResponse.json({ ok: true });

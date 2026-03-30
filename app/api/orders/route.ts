@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { calculateTotals, type CartItem } from "@/lib/cart";
 import { calculateCryptoAmount, getCryptoOptions } from "@/lib/crypto-payment";
@@ -44,49 +44,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
   }
 
-  const db = getDb();
   const items: CartItem[] = [];
+  const variantRows = await prisma.variants.findMany({
+    where: {
+      id: { in: d.items.map((line) => line.variantId) },
+      product_id: { in: d.items.map((line) => line.productId) },
+    },
+  });
+  const products = await prisma.products.findMany({
+    where: { id: { in: variantRows.map((v) => v.product_id) } },
+    select: { id: true, name: true, slug: true, images: true, subscription_eligible: true },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+  const variantMap = new Map(
+    variantRows.map((v) => {
+      const p = productMap.get(v.product_id);
+      return [`${v.id}:${v.product_id}`, p ? { ...v, product: p } : null];
+    })
+  );
   for (const line of d.items) {
-    const v = db
-      .prepare(`SELECT v.*, p.name, p.slug, p.images, p.subscription_eligible FROM variants v JOIN products p ON p.id = v.product_id WHERE v.id = ? AND p.id = ?`)
-      .get(line.variantId, line.productId) as
-      | {
-          stock_qty: number;
-          price: number;
-          size: string;
-          name: string;
-          slug: string;
-          images: string;
-          subscription_eligible: number;
-        }
-      | undefined;
+    const v = variantMap.get(`${line.variantId}:${line.productId}`);
     if (!v || v.stock_qty < line.quantity) {
       return NextResponse.json({ error: `Stock issue: ${line.name}` }, { status: 400 });
     }
     let imgs: string[] = [];
     try {
-      imgs = JSON.parse(v.images) as string[];
+      imgs = JSON.parse(v.product.images) as string[];
     } catch {
       imgs = [];
     }
     items.push({
       productId: line.productId,
       variantId: line.variantId,
-      name: v.name,
-      slug: v.slug,
+      name: v.product.name,
+      slug: v.product.slug,
       size: v.size,
       price: v.price,
       image: line.image ?? imgs[0] ?? "/placeholder-peptide.svg",
       quantity: line.quantity,
-      subscriptionEligible: Boolean(v.subscription_eligible),
+      subscriptionEligible: Boolean(v.product.subscription_eligible),
     });
   }
 
   let loyaltyRedeem = d.loyaltyPointsToRedeem ?? 0;
   if (user && loyaltyRedeem > 0) {
-    const urow = db.prepare(`SELECT loyalty_points FROM users WHERE id = ?`).get(user.userId) as
-      | { loyalty_points: number }
-      | undefined;
+    const urow = await prisma.users.findFirst({
+      where: { id: user.userId },
+      select: { loyalty_points: true },
+    });
     if (!urow || urow.loyalty_points < loyaltyRedeem) {
       return NextResponse.json({ error: "Insufficient loyalty points" }, { status: 400 });
     }
@@ -106,56 +111,63 @@ export async function POST(req: Request) {
   }));
   const shippingJson = JSON.stringify(d.shippingAddress);
 
-  db.prepare(
-    `INSERT INTO orders (
-      id, user_id, guest_email, status, items, subtotal, discount_amount, discount_code,
-      shipping_cost, tax, total, shipping_address,
-      is_subscription_order, loyalty_points_earned, loyalty_points_used,
-      crypto_currency, crypto_amount, crypto_wallet_sent_to
-    ) VALUES (?, ?, ?, 'pending_payment', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    orderId,
-    user?.userId ?? null,
-    user ? null : email,
-    JSON.stringify(snapshot),
-    totals.subtotal,
-    totals.discountAmount + totals.loyaltyDiscount,
-    totals.discountCode,
-    totals.shippingCost,
-    totals.tax,
-    totals.total,
-    shippingJson,
-    d.isSubscription ? 1 : 0,
-    totals.pointsToEarn,
-    loyaltyRedeem,
-    crypto.symbol,
-    cryptoAmount,
-    crypto.walletAddress
-  );
+  await prisma.$transaction(async (tx) => {
+    await tx.orders.create({
+      data: {
+        id: orderId,
+        user_id: user?.userId ?? null,
+        guest_email: user ? null : email,
+        status: "pending_payment",
+        items: JSON.stringify(snapshot),
+        subtotal: totals.subtotal,
+        discount_amount: totals.discountAmount + totals.loyaltyDiscount,
+        discount_code: totals.discountCode,
+        shipping_cost: totals.shippingCost,
+        tax: totals.tax,
+        total: totals.total,
+        shipping_address: shippingJson,
+        is_subscription_order: d.isSubscription ? 1 : 0,
+        loyalty_points_earned: totals.pointsToEarn,
+        loyalty_points_used: loyaltyRedeem,
+        crypto_currency: crypto.symbol,
+        crypto_amount: cryptoAmount,
+        crypto_wallet_sent_to: crypto.walletAddress,
+      },
+    });
 
-  if (user && loyaltyRedeem > 0) {
-    db.prepare(`UPDATE users SET loyalty_points = loyalty_points - ? WHERE id = ?`).run(loyaltyRedeem, user.userId);
-    const tid = nanoid();
-    db.prepare(
-      `INSERT INTO loyalty_transactions (id, user_id, points, reason, order_id) VALUES (?, ?, ?, 'redeem_checkout', ?)`
-    ).run(tid, user.userId, -loyaltyRedeem, orderId);
-  }
+    for (const line of items) {
+      await tx.variants.update({
+        where: { id: line.variantId },
+        data: { stock_qty: { decrement: line.quantity } },
+      });
+      await tx.products.update({
+        where: { id: line.productId },
+        data: { sold_count: { increment: line.quantity } },
+      });
+    }
 
-  for (const line of items) {
-    db.prepare(`UPDATE variants SET stock_qty = stock_qty - ? WHERE id = ?`).run(line.quantity, line.variantId);
-    db.prepare(`UPDATE products SET sold_count = sold_count + ? WHERE id = ?`).run(line.quantity, line.productId);
-  }
+    if (user && loyaltyRedeem > 0) {
+      const tid = nanoid();
+      await tx.users.update({
+        where: { id: user.userId },
+        data: { loyalty_points: { decrement: loyaltyRedeem } },
+      });
+      await tx.loyalty_transactions.create({
+        data: { id: tid, user_id: user.userId, points: -loyaltyRedeem, reason: "redeem_checkout", order_id: orderId },
+      });
+    }
 
-  if (user) {
-    const seq = nanoid();
-    db.prepare(
-      `INSERT INTO email_sequences (id, user_id, sequence_type, reference_id, current_step) VALUES (?, ?, 'post_purchase', ?, 0)`
-    ).run(seq, user.userId, orderId);
-    const ac = nanoid();
-    db.prepare(
-      `INSERT INTO abandoned_carts (id, user_id, cart_data, recovered) VALUES (?, ?, ?, 1)`
-    ).run(ac, user.userId, JSON.stringify({ items: [] }));
-  }
+    if (user) {
+      const seq = nanoid();
+      const ac = nanoid();
+      await tx.email_sequences.create({
+        data: { id: seq, user_id: user.userId, sequence_type: "post_purchase", reference_id: orderId, current_step: 0 },
+      });
+      await tx.abandoned_carts.create({
+        data: { id: ac, user_id: user.userId, cart_data: JSON.stringify({ items: [] }), recovered: 1 },
+      });
+    }
+  });
 
   const displayName =
     (d.shippingAddress.fullName as string) ||

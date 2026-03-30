@@ -1,52 +1,70 @@
 import { nanoid } from "nanoid";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 
 const REFERRAL_POINTS_ON_CONVERT = 2000;
 
-export function createReferralClick(referrerId: string, referredEmail?: string): string {
-  const db = getDb();
+export async function createReferralClick(referrerId: string, referredEmail?: string): Promise<string> {
   const id = nanoid();
-  db.prepare(
-    `INSERT INTO referrals (id, referrer_id, referred_email, status) VALUES (?, ?, ?, 'clicked')`
-  ).run(id, referrerId, referredEmail ?? null);
+  await prisma.referrals.create({
+    data: { id, referrer_id: referrerId, referred_email: referredEmail ?? null, status: "clicked" },
+  });
   return id;
 }
 
-export function attributeRegistration(referredUserId: string, referralCode: string): void {
-  const db = getDb();
-  const referrer = db
-    .prepare(`SELECT id FROM users WHERE referral_code = ?`)
-    .get(referralCode) as { id: string } | undefined;
+export async function attributeRegistration(referredUserId: string, referralCode: string): Promise<void> {
+  const referrer = await prisma.users.findFirst({
+    where: { referral_code: referralCode },
+    select: { id: true },
+  });
   if (!referrer) return;
-  db.prepare(`UPDATE users SET referred_by_id = ? WHERE id = ?`).run(referrer.id, referredUserId);
-  db.prepare(
-    `UPDATE referrals SET status = 'registered', referred_user_id = ? WHERE rowid = (
-      SELECT rowid FROM referrals WHERE referrer_id = ? AND referred_user_id IS NULL ORDER BY created_at DESC LIMIT 1
-    )`
-  ).run(referredUserId, referrer.id);
+  await prisma.users.update({
+    where: { id: referredUserId },
+    data: { referred_by_id: referrer.id },
+  });
+  const latestReferral = await prisma.referrals.findFirst({
+    where: { referrer_id: referrer.id, referred_user_id: null },
+    orderBy: { created_at: "desc" },
+    select: { id: true },
+  });
+  if (!latestReferral) return;
+  await prisma.referrals.update({
+    where: { id: latestReferral.id },
+    data: { status: "registered", referred_user_id: referredUserId },
+  });
 }
 
-export function markReferralConverted(referredUserId: string): void {
-  const db = getDb();
-  const user = db
-    .prepare(`SELECT referred_by_id FROM users WHERE id = ?`)
-    .get(referredUserId) as { referred_by_id: string | null } | undefined;
+export async function markReferralConverted(referredUserId: string): Promise<void> {
+  const user = await prisma.users.findFirst({
+    where: { id: referredUserId },
+    select: { referred_by_id: true },
+  });
   if (!user?.referred_by_id) return;
-  const ref = db
-    .prepare(
-      `SELECT id FROM referrals WHERE referred_user_id = ? AND status != 'converted' ORDER BY created_at DESC LIMIT 1`
-    )
-    .get(referredUserId) as { id: string } | undefined;
+  const ref = await prisma.referrals.findFirst({
+    where: { referred_user_id: referredUserId, NOT: { status: "converted" } },
+    orderBy: { created_at: "desc" },
+    select: { id: true },
+  });
   if (!ref) return;
-  db.prepare(
-    `UPDATE referrals SET status = 'converted', converted_at = unixepoch(), points_awarded = ? WHERE id = ?`
-  ).run(REFERRAL_POINTS_ON_CONVERT, ref.id);
-  db.prepare(`UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?`).run(
-    REFERRAL_POINTS_ON_CONVERT,
-    user.referred_by_id
-  );
+  await prisma.referrals.update({
+    where: { id: ref.id },
+    data: {
+      status: "converted",
+      converted_at: Math.floor(Date.now() / 1000),
+      points_awarded: REFERRAL_POINTS_ON_CONVERT,
+    },
+  });
+  await prisma.users.update({
+    where: { id: user.referred_by_id },
+    data: { loyalty_points: { increment: REFERRAL_POINTS_ON_CONVERT } },
+  });
   const tid = nanoid();
-  db.prepare(
-    `INSERT INTO loyalty_transactions (id, user_id, points, reason, order_id) VALUES (?, ?, ?, ?, ?)`
-  ).run(tid, user.referred_by_id, REFERRAL_POINTS_ON_CONVERT, "referral_conversion", null);
+  await prisma.loyalty_transactions.create({
+    data: {
+      id: tid,
+      user_id: user.referred_by_id,
+      points: REFERRAL_POINTS_ON_CONVERT,
+      reason: "referral_conversion",
+      order_id: null,
+    },
+  });
 }

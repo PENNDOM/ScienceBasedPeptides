@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -7,19 +7,10 @@ export async function GET() {
   if (!jwt) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const db = getDb();
-  const row = db.prepare(`SELECT id, email, name, role, loyalty_points, referral_code FROM users WHERE id = ?`).get(
-    jwt.userId
-  ) as
-    | {
-        id: string;
-        email: string;
-        name: string | null;
-        role: string;
-        loyalty_points: number;
-        referral_code: string;
-      }
-    | undefined;
+  const row = await prisma.users.findFirst({
+    where: { id: jwt.userId },
+    select: { id: true, email: true, name: true, role: true, loyalty_points: true, referral_code: true },
+  });
   if (!row) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

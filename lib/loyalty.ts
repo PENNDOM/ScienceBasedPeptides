@@ -1,32 +1,34 @@
 import { nanoid } from "nanoid";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 
-export function awardPointsForOrder(params: {
+export async function awardPointsForOrder(params: {
   userId: string;
   orderId: string;
   orderTotalUsd: number;
   isSubscription: boolean;
-}): number {
-  const db = getDb();
+}): Promise<number> {
   const base = Math.floor(params.orderTotalUsd);
   const points = params.isSubscription ? base * 2 : base;
   const uid = nanoid();
-  db.prepare(
-    `UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?`
-  ).run(points, params.userId);
-  db.prepare(
-    `INSERT INTO loyalty_transactions (id, user_id, points, reason, order_id) VALUES (?, ?, ?, ?, ?)`
-  ).run(uid, params.userId, points, "order_earned", params.orderId);
+  await prisma.users.update({
+    where: { id: params.userId },
+    data: { loyalty_points: { increment: points } },
+  });
+  await prisma.loyalty_transactions.create({
+    data: { id: uid, user_id: params.userId, points, reason: "order_earned", order_id: params.orderId },
+  });
   return points;
 }
 
-export function redeemPoints(userId: string, points: number, reason: string): void {
-  const db = getDb();
+export async function redeemPoints(userId: string, points: number, reason: string): Promise<void> {
   const uid = nanoid();
-  db.prepare(`UPDATE users SET loyalty_points = loyalty_points - ? WHERE id = ?`).run(points, userId);
-  db.prepare(
-    `INSERT INTO loyalty_transactions (id, user_id, points, reason, order_id) VALUES (?, ?, ?, ?, ?)`
-  ).run(uid, userId, -points, reason, null);
+  await prisma.users.update({
+    where: { id: userId },
+    data: { loyalty_points: { decrement: points } },
+  });
+  await prisma.loyalty_transactions.create({
+    data: { id: uid, user_id: userId, points: -points, reason, order_id: null },
+  });
 }
 
 export function minimumRedeemPoints(): number {

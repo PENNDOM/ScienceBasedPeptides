@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseJsonArray } from "@/lib/utils";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const user = await getCurrentUser();
-  const db = getDb();
-  const order = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+  const order = (await prisma.orders.findFirst({ where: { id } })) as Record<string, unknown> | undefined;
   if (!order) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -42,16 +41,15 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const db = getDb();
-  const order = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(id) as { user_id: string | null } | undefined;
+  const order = await prisma.orders.findFirst({ where: { id }, select: { user_id: true } });
   if (!order || order.user_id !== user.userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (parsed.data.cryptoTxHash) {
-    db.prepare(`UPDATE orders SET crypto_tx_hash = ?, status = 'awaiting_confirmation' WHERE id = ?`).run(
-      parsed.data.cryptoTxHash,
-      id
-    );
+    await prisma.orders.update({
+      where: { id },
+      data: { crypto_tx_hash: parsed.data.cryptoTxHash, status: "awaiting_confirmation" },
+    });
   }
   return NextResponse.json({ ok: true });
 }

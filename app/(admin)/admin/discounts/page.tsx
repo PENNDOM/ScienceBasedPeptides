@@ -1,8 +1,7 @@
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 
-export default function AdminDiscountsPage() {
-  const db = getDb();
-  const codes = db.prepare(`SELECT * FROM discount_codes ORDER BY code`).all();
+export default async function AdminDiscountsPage() {
+  const codes = await prisma.discount_codes.findMany({ orderBy: { code: "asc" } });
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <h1 className="font-display text-3xl font-semibold">Discount codes</h1>

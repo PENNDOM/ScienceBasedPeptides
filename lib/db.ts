@@ -1,20 +1,24 @@
-import type Database from "better-sqlite3";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 
-export function db(): Database.Database {
-  return getDb();
+function toPgPlaceholders(sql: string): string {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
 }
 
-export function run(sql: string, params: unknown[] = []) {
-  return db().prepare(sql).run(...params);
+export async function run(sql: string, params: unknown[] = []) {
+  const pgSql = toPgPlaceholders(sql);
+  return prisma.$executeRawUnsafe(pgSql, ...params);
 }
 
-export function get<T>(sql: string, params: unknown[] = []): T | undefined {
-  return db().prepare(sql).get(...params) as T | undefined;
+export async function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
+  const pgSql = toPgPlaceholders(sql);
+  const rows = (await prisma.$queryRawUnsafe(pgSql, ...params)) as T[];
+  return rows[0];
 }
 
-export function all<T>(sql: string, params: unknown[] = []): T[] {
-  return db().prepare(sql).all(...params) as T[];
+export async function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
+  const pgSql = toPgPlaceholders(sql);
+  return (await prisma.$queryRawUnsafe(pgSql, ...params)) as T[];
 }
 
 export interface UserRow {

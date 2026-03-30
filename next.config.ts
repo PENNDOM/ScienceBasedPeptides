@@ -16,7 +16,6 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/webp", "image/avif"],
   },
-  serverExternalPackages: ["better-sqlite3"],
 };
 
 export default nextConfig;

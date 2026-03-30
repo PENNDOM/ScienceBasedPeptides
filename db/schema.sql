@@ -1,3 +1,5 @@
+-- Legacy SQLite reference schema only. Production DB is PostgreSQL via Prisma migrations.
+
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,

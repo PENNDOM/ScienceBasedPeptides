@@ -1,24 +1,11 @@
 import { config } from "dotenv";
 import { nanoid } from "nanoid";
-import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
-import Database from "better-sqlite3";
 import { DEFAULT_ADMIN_EMAIL } from "@/lib/site";
+import { prisma } from "@/lib/prisma";
 
 config({ path: path.join(process.cwd(), ".env.local") });
-
-const DB_PATH = path.join(process.cwd(), "db", "peptide.db");
-const SCHEMA_PATH = path.join(process.cwd(), "db", "schema.sql");
-
-if (fs.existsSync(DB_PATH)) {
-  fs.unlinkSync(DB_PATH);
-}
-
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
-db.exec(fs.readFileSync(SCHEMA_PATH, "utf-8"));
 
 const IMG = JSON.stringify(["/placeholder-peptide.svg"]);
 
@@ -573,80 +560,6 @@ const products: P[] = [
   },
 ];
 
-const insCat = db.prepare(
-  `INSERT INTO categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)`
-);
-for (const c of categories) {
-  insCat.run(c.id, c.name, c.slug, c.description, c.display_order);
-}
-
-const insP = db.prepare(`
-  INSERT INTO products (
-    id, name, slug, description, short_description, scientific_name, category_id, images,
-    base_price, compare_price_at, sku, purity, molecular_formula, cas_number, storage_instructions,
-    cycle_length_days, is_active, is_featured, is_best_seller, subscription_eligible, tags, seo_title, seo_description
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`);
-
-const insV = db.prepare(`
-  INSERT INTO variants (id, product_id, size, price, compare_at, sku, stock_qty, low_stock_threshold, is_default, display_order)
-  VALUES (?, ?, ?, ?, ?, ?, ?, 10, ?, ?)
-`);
-
-for (const p of products) {
-  const tags = JSON.stringify(p.tags);
-  insP.run(
-    p.id,
-    p.name,
-    p.slug,
-    p.description,
-    p.short_description ?? null,
-    p.scientific_name ?? null,
-    p.category_id,
-    IMG,
-    p.base_price,
-    p.compare_price_at ?? null,
-    p.sku,
-    p.purity ?? null,
-    p.molecular_formula ?? null,
-    p.cas_number ?? null,
-    p.storage_instructions ?? null,
-    p.cycle_length_days ?? null,
-    1,
-    p.is_featured,
-    p.is_best_seller,
-    p.subscription_eligible,
-    tags,
-    `${p.name} · Laboratory research material`,
-    (p.short_description ?? p.description).slice(0, 160)
-  );
-  for (const v of p.variants) {
-    insV.run(
-      v.id,
-      p.id,
-      v.size,
-      v.price,
-      v.compare_at ?? null,
-      v.sku,
-      v.stock,
-      v.is_default ? 1 : 0,
-      v.order
-    );
-  }
-  const lr = nanoid();
-  db.prepare(
-    `INSERT INTO lab_reports (id, product_id, batch_number, lab_name, purity, report_url, tested_at, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
-  ).run(
-    lr,
-    p.id,
-    `BATCH-${p.sku}-001`,
-    "NorthStar Analytics Lab",
-    p.purity ?? 99.0,
-    "https://example.com/coa/sample.pdf",
-    Math.floor(Date.now() / 1000) - 86400 * 14
-  );
-}
-
 const bundles: Array<{
   id: string;
   name: string;
@@ -714,21 +627,6 @@ const bundles: Array<{
   },
 ];
 
-const insB = db.prepare(
-  `INSERT INTO bundles (id, name, slug, description, price, compare_at, discount_percent, image, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
-);
-const insBi = db.prepare(
-  `INSERT INTO bundle_items (id, bundle_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?, ?)`
-);
-
-for (const b of bundles) {
-  insB.run(b.id, b.name, b.slug, b.description, b.price, b.compare_at, b.discount_percent, "/placeholder-peptide.svg");
-  for (const it of b.items) {
-    const row = db.prepare(`SELECT product_id FROM variants WHERE id = ?`).get(it.variant_id) as { product_id: string };
-    insBi.run(nanoid(), b.id, row.product_id, it.variant_id, it.qty);
-  }
-}
-
 const related: Array<[string, string, string]> = [
   ["p_bpc157", "p_tb500", "research_set"],
   ["p_bpc157", "p_blend_bpc_tb", "frequently_bought"],
@@ -747,68 +645,230 @@ const related: Array<[string, string, string]> = [
   ["p_nad", "p_epit", "related"],
 ];
 
-const insR = db.prepare(
-  `INSERT INTO related_products (product_id, related_id, relation_type) VALUES (?, ?, ?)`
-);
-for (const [a, b, t] of related) {
-  insR.run(a, b, t);
-}
-
 const discounts = [
   { code: "WELCOME10", type: "percentage", value: 10, min: null as number | null, max: null as number | null },
   { code: "FREESHIP", type: "free_shipping", value: 0, min: null, max: null },
   { code: "RESEARCH15", type: "percentage", value: 15, min: 150, max: null },
 ];
 
-const insD = db.prepare(
-  `INSERT INTO discount_codes (id, code, type, value, min_order_value, max_uses, expires_at, is_active) VALUES (?, ?, ?, ?, ?, ?, NULL, 1)`
-);
-for (const d of discounts) {
-  insD.run(nanoid(), d.code, d.type, d.value, d.min, d.max);
+async function main() {
+  await prisma.$executeRawUnsafe(`
+    TRUNCATE TABLE
+      "related_products",
+      "bundle_items",
+      "bundles",
+      "lab_reports",
+      "variants",
+      "products",
+      "categories",
+      "reviews",
+      "discount_codes",
+      "newsletter_signups",
+      "loyalty_transactions",
+      "referrals",
+      "abandoned_carts",
+      "email_sequences",
+      "subscription_items",
+      "subscriptions",
+      "orders",
+      "addresses",
+      "users"
+    RESTART IDENTITY CASCADE
+  `);
+
+  await prisma.categories.createMany({
+    data: categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description,
+      display_order: c.display_order,
+    })),
+  });
+
+  for (const p of products) {
+    const tags = JSON.stringify(p.tags);
+    await prisma.products.create({
+      data: {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        short_description: p.short_description ?? null,
+        scientific_name: p.scientific_name ?? null,
+        category_id: p.category_id,
+        images: IMG,
+        base_price: p.base_price,
+        compare_price_at: p.compare_price_at ?? null,
+        sku: p.sku,
+        purity: p.purity ?? null,
+        molecular_formula: p.molecular_formula ?? null,
+        cas_number: p.cas_number ?? null,
+        storage_instructions: p.storage_instructions ?? null,
+        cycle_length_days: p.cycle_length_days ?? null,
+        is_active: 1,
+        is_featured: p.is_featured,
+        is_best_seller: p.is_best_seller,
+        subscription_eligible: p.subscription_eligible,
+        tags,
+        seo_title: `${p.name} · Laboratory research material`,
+        seo_description: (p.short_description ?? p.description).slice(0, 160),
+      },
+    });
+
+    await prisma.variants.createMany({
+      data: p.variants.map((v) => ({
+        id: v.id,
+        product_id: p.id,
+        size: v.size,
+        price: v.price,
+        compare_at: v.compare_at ?? null,
+        sku: v.sku,
+        stock_qty: v.stock,
+        low_stock_threshold: 10,
+        is_default: v.is_default ? 1 : 0,
+        display_order: v.order,
+      })),
+    });
+
+    await prisma.lab_reports.create({
+      data: {
+        id: nanoid(),
+        product_id: p.id,
+        batch_number: `BATCH-${p.sku}-001`,
+        lab_name: "NorthStar Analytics Lab",
+        purity: p.purity ?? 99.0,
+        report_url: "https://example.com/coa/sample.pdf",
+        tested_at: BigInt(Math.floor(Date.now() / 1000) - 86400 * 14),
+        is_current: 1,
+      },
+    });
+  }
+
+  const variantToProduct = new Map<string, string>();
+  for (const p of products) {
+    for (const v of p.variants) {
+      variantToProduct.set(v.id, p.id);
+    }
+  }
+
+  for (const b of bundles) {
+    await prisma.bundles.create({
+      data: {
+        id: b.id,
+        name: b.name,
+        slug: b.slug,
+        description: b.description,
+        price: b.price,
+        compare_at: b.compare_at,
+        discount_percent: b.discount_percent,
+        image: "/placeholder-peptide.svg",
+        is_active: 1,
+      },
+    });
+
+    for (const it of b.items) {
+      const productId = variantToProduct.get(it.variant_id);
+      if (!productId) {
+        throw new Error(`Unknown variant id in bundle: ${it.variant_id}`);
+      }
+      await prisma.bundle_items.create({
+        data: {
+          id: nanoid(),
+          bundle_id: b.id,
+          product_id: productId,
+          variant_id: it.variant_id,
+          quantity: it.qty,
+        },
+      });
+    }
+  }
+
+  await prisma.related_products.createMany({
+    data: related.map(([product_id, related_id, relation_type]) => ({
+      product_id,
+      related_id,
+      relation_type,
+    })),
+  });
+
+  for (const d of discounts) {
+    await prisma.discount_codes.create({
+      data: {
+        id: nanoid(),
+        code: d.code,
+        type: d.type,
+        value: d.value,
+        min_order_value: d.min,
+        max_uses: d.max,
+        expires_at: null,
+        is_active: 1,
+      },
+    });
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  const adminPass = process.env.ADMIN_PASSWORD || "changeme123";
+  const adminId = nanoid();
+  const referral = nanoid(10);
+  const hash = bcrypt.hashSync(adminPass, 12);
+
+  await prisma.users.create({
+    data: {
+      id: adminId,
+      email: adminEmail,
+      name: "Admin",
+      password_hash: hash,
+      role: "admin",
+      loyalty_points: 0,
+      referral_code: referral,
+      email_consent: 1,
+    },
+  });
+
+  await prisma.reviews.createMany({
+    data: [
+      {
+        id: nanoid(),
+        product_id: "p_bpc157",
+        user_id: adminId,
+        rating: 5,
+        title: "Clean COA workflow",
+        body: "Documentation was clear and the certificate matched the batch labeling in our receiving QC checklist.",
+        is_verified: 1,
+        is_approved: 1,
+      },
+      {
+        id: nanoid(),
+        product_id: "p_ghk",
+        user_id: adminId,
+        rating: 5,
+        title: "Consistent specification records",
+        body: "Received materials and records were aligned: lot identifiers, purity summary, and report links were all easy to reconcile.",
+        is_verified: 1,
+        is_approved: 1,
+      },
+      {
+        id: nanoid(),
+        product_id: "p_nad",
+        user_id: adminId,
+        rating: 4,
+        title: "Solid packaging and documentation",
+        body: "Packaging integrity was good on arrival and the accompanying documentation was sufficient for internal receiving and inventory checks.",
+        is_verified: 1,
+        is_approved: 1,
+      },
+    ],
+  });
+
+  console.log("Seed complete. Admin:", adminEmail);
 }
 
-const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
-const adminPass = process.env.ADMIN_PASSWORD || "changeme123";
-const adminId = nanoid();
-const referral = nanoid(10);
-const hash = bcrypt.hashSync(adminPass, 12);
-
-db.prepare(
-  `INSERT INTO users (id, email, name, password_hash, role, loyalty_points, referral_code, email_consent) VALUES (?, ?, ?, ?, 'admin', 0, ?, 1)`
-).run(adminId, adminEmail, "Admin", hash, referral);
-
-db.prepare(
-  `INSERT INTO reviews (id, product_id, user_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, 1, 1)`
-).run(
-  nanoid(),
-  "p_bpc157",
-  adminId,
-  5,
-  "Clean COA workflow",
-  "Documentation was clear and the certificate matched the batch labeling in our receiving QC checklist."
-);
-
-db.prepare(
-  `INSERT INTO reviews (id, product_id, user_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, 1, 1)`
-).run(
-  nanoid(),
-  "p_ghk",
-  adminId,
-  5,
-  "Consistent specification records",
-  "Received materials and records were aligned: lot identifiers, purity summary, and report links were all easy to reconcile."
-);
-
-db.prepare(
-  `INSERT INTO reviews (id, product_id, user_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, 1, 1)`
-).run(
-  nanoid(),
-  "p_nad",
-  adminId,
-  4,
-  "Solid packaging and documentation",
-  "Packaging integrity was good on arrival and the accompanying documentation was sufficient for internal receiving and inventory checks."
-);
-
-console.log("Seed complete. Admin:", adminEmail);
-db.close();
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

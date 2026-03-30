@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -7,7 +7,10 @@ export async function GET() {
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const db = getDb();
-  const orders = db.prepare(`SELECT id, user_id, guest_email, status, total, created_at FROM orders ORDER BY created_at DESC LIMIT 500`).all();
+  const orders = await prisma.orders.findMany({
+    orderBy: { created_at: "desc" },
+    take: 500,
+    select: { id: true, user_id: true, guest_email: true, status: true, total: true, created_at: true },
+  });
   return NextResponse.json({ orders });
 }

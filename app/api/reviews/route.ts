@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseJsonArray } from "@/lib/utils";
 
@@ -11,13 +11,11 @@ export async function GET(req: Request) {
   if (!productId) {
     return NextResponse.json({ error: "productId required" }, { status: 400 });
   }
-  const db = getDb();
-  const rows = db
-    .prepare(
-      `SELECT r.*, u.name AS user_name FROM reviews r JOIN users u ON u.id = r.user_id
-       WHERE r.product_id = ? AND r.is_approved = 1 ORDER BY r.created_at DESC`
-    )
-    .all(productId);
+  const rows = await prisma.$queryRawUnsafe(
+    `SELECT r.*, u.name AS user_name FROM reviews r JOIN users u ON u.id = r.user_id
+     WHERE r.product_id = $1 AND r.is_approved = 1 ORDER BY r.created_at DESC`,
+    productId
+  );
   return NextResponse.json({ reviews: rows });
 }
 
@@ -40,11 +38,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid review" }, { status: 400 });
   }
   const { productId, orderId, rating, title, body: reviewBody } = parsed.data;
-  const db = getDb();
-
-  const orders = db
-    .prepare(`SELECT * FROM orders WHERE user_id = ? AND status = 'delivered'`)
-    .all(user.userId) as Array<{ id: string; items: string }>;
+  const orders = await prisma.orders.findMany({
+    where: { user_id: user.userId, status: "delivered" },
+    select: { id: true, items: true },
+  });
 
   let ok = false;
   for (const o of orders) {
@@ -59,8 +56,18 @@ export async function POST(req: Request) {
   }
 
   const id = nanoid();
-  db.prepare(
-    `INSERT INTO reviews (id, product_id, user_id, order_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0)`
-  ).run(id, productId, user.userId, orderId ?? null, rating, title ?? null, reviewBody);
+  await prisma.reviews.create({
+    data: {
+      id,
+      product_id: productId,
+      user_id: user.userId,
+      order_id: orderId ?? null,
+      rating,
+      title: title ?? null,
+      body: reviewBody,
+      is_verified: 1,
+      is_approved: 0,
+    },
+  });
   return NextResponse.json({ id, pending: true });
 }

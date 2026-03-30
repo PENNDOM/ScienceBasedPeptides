@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import getDb from "@/db/index";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -7,9 +7,11 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const db = getDb();
-  const orders = db
-    .prepare(`SELECT id, total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 10`)
-    .all(user.userId);
+  const orders = await prisma.orders.findMany({
+    where: { user_id: user.userId },
+    orderBy: { created_at: "desc" },
+    take: 10,
+    select: { id: true, total: true, status: true, created_at: true },
+  });
   return NextResponse.json({ orders });
 }
