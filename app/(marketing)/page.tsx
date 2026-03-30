@@ -36,10 +36,6 @@ export default async function HomePage() {
     )
     .all() as Array<{ rating: number; title: string | null; body: string; name: string | null }>;
 
-  const categories = db
-    .prepare(`SELECT * FROM categories ORDER BY display_order`)
-    .all() as Array<{ id: string; name: string; slug: string }>;
-
   const articles = [
     { slug: "peptide-purity-basics", title: "Understanding peptide purity in research materials" },
     { slug: "coa-readership", title: "How to read a certificate of analysis (COA)" },
@@ -94,14 +90,13 @@ export default async function HomePage() {
                 compareAt={p.compare_at as number | null}
                 variantId={p.vid as string}
                 size={p.size as string}
-                subscriptionEligible={Boolean(p.subscription_eligible)}
               />
             );
           })}
         </div>
       </section>
 
-      <section className="border-y border-[var(--border)] bg-surface py-16">
+      <section className="border-y border-[var(--border)] py-16">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="font-display text-2xl font-semibold md:text-3xl">Commonly ordered</h2>
           <div className="mt-8 flex gap-4 overflow-x-auto pb-2">
@@ -118,7 +113,6 @@ export default async function HomePage() {
                     price={p.price as number}
                     variantId={p.vid as string}
                     size={p.size as string}
-                    subscriptionEligible={Boolean(p.subscription_eligible)}
                   />
                 </div>
               );
@@ -127,23 +121,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold md:text-3xl">Categories</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((c) => (
-            <Link
-              key={c.id}
-              href={`/shop/${c.slug}`}
-              className="rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 p-6 transition hover:border-accent/40"
-            >
-              <p className="font-display text-lg font-semibold">{c.name}</p>
-              <p className="mt-2 text-sm text-[var(--text-muted)]">Browse {c.name.toLowerCase()}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="border-y border-[var(--border)] bg-surface py-16">
+      <section className="border-y border-[var(--border)] py-16">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 md:grid-cols-2">
           <div>
             <h2 className="font-display text-2xl font-semibold md:text-3xl">Multi-compound research sets</h2>
@@ -179,7 +157,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-[var(--border)] bg-surface py-16">
+      <section className="border-t border-[var(--border)] py-16">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="font-display text-2xl font-semibold md:text-3xl">What researchers say</h2>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
@@ -213,7 +191,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-[var(--border)] bg-surface py-16">
+      <section className="border-t border-[var(--border)] py-16">
         <div className="mx-auto max-w-3xl px-4 text-center">
           <h2 className="font-display text-2xl font-semibold">Research updates</h2>
           <p className="mt-3 text-sm text-[var(--text-muted)]">

@@ -70,20 +70,18 @@ export function ProductPdp(props: {
   const { product, variants, labReports, reviews, related } = props;
   const [selectedId, setSelectedId] = useState(variants.find((v) => v.stockQty > 0)?.id ?? variants[0]?.id);
   const [qty, setQty] = useState(1);
-  const [sub, setSub] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   const selected = useMemo(() => variants.find((v) => v.id === selectedId)!, [variants, selectedId]);
   const variantOpts: VariantOption[] = variants.map((v) => ({
     id: v.id,
     size: v.size,
-    price: sub && product.subscriptionEligible ? v.price * (1 - product.subscriptionDiscount) : v.price,
+    price: v.price,
     compareAt: v.compareAt,
     inStock: v.stockQty > 0,
   }));
 
-  const displayPrice =
-    sub && product.subscriptionEligible ? selected.price * (1 - product.subscriptionDiscount) : selected.price;
+  const displayPrice = selected.price;
 
   useEffect(() => {
     try {
@@ -98,18 +96,15 @@ export function ProductPdp(props: {
 
   function addToCart() {
     const img = product.images[0] ?? "/placeholder-peptide.svg";
-    const unitPrice =
-      sub && product.subscriptionEligible ? selected.price * (1 - product.subscriptionDiscount) : selected.price;
     const item: CartItem = {
       productId: product.id,
       variantId: selected.id,
       name: product.name,
       slug: product.slug,
       size: selected.size,
-      price: unitPrice,
+      price: selected.price,
       image: img,
       quantity: qty,
-      subscriptionEligible: product.subscriptionEligible,
     };
     addItem(item);
   }
@@ -169,12 +164,6 @@ export function ProductPdp(props: {
               className="mt-1 h-10 w-20 rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 px-2 font-mono text-sm"
             />
           </div>
-          {product.subscriptionEligible ? (
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={sub} onChange={(e) => setSub(e.target.checked)} />
-              Subscribe &amp; save {Math.round(product.subscriptionDiscount * 100)}%
-            </label>
-          ) : null}
         </div>
 
         <div className="mt-6 flex flex-wrap items-baseline gap-3">
@@ -188,10 +177,6 @@ export function ProductPdp(props: {
         {qty >= 3 ? (
           <p className="mt-2 text-sm text-accent">Buy 3+ of the same variant — 10% off at checkout (bulk discount).</p>
         ) : null}
-        <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Earn ~{Math.floor(displayPrice * qty)} loyalty points on this order (after payment confirmation).
-        </p>
-
         <Button className="mt-6 w-full lg:sticky lg:bottom-4" size="lg" type="button" onClick={addToCart}>
           Add to cart
         </Button>

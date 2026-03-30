@@ -15,7 +15,7 @@ const lineSchema = z.object({
   size: z.string(),
   price: z.number(),
   image: z.string().optional(),
-  subscriptionEligible: z.boolean(),
+  subscriptionEligible: z.boolean().optional(),
 });
 
 const schema = z.object({

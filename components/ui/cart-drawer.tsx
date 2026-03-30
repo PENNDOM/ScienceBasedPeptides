@@ -10,8 +10,8 @@ import { calculateTotals } from "@/lib/cart";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
 
 export function CartDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const { items, removeItem, updateQuantity, discountData, loyaltyPointsToRedeem, isSubscription } = useCartStore();
-  const totals = calculateTotals(items, discountData, loyaltyPointsToRedeem, isSubscription);
+  const { items, removeItem, updateQuantity, discountData } = useCartStore();
+  const totals = calculateTotals(items, discountData);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

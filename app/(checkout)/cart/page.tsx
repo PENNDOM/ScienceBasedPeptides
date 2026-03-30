@@ -8,7 +8,6 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { calculateTotals } from "@/lib/cart";
-import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
 
@@ -19,15 +18,10 @@ export default function CartPage() {
     removeItem,
     discountData,
     setDiscount,
-    loyaltyPointsToRedeem,
-    setLoyaltyRedemption,
-    isSubscription,
-    setIsSubscription,
   } = useCartStore();
-  const user = useAuthStore((s) => s.user);
   const [code, setCode] = useState("");
   const [bac, setBac] = useState(false);
-  const totals = calculateTotals(items, discountData, loyaltyPointsToRedeem, isSubscription);
+  const totals = calculateTotals(items, discountData);
 
   async function toggleBac(checked: boolean) {
     setBac(checked);
@@ -48,7 +42,6 @@ export default function CartPage() {
       price: v.price,
       image: "/placeholder-peptide.svg",
       quantity: 1,
-      subscriptionEligible: false,
     });
   }
 
@@ -123,33 +116,12 @@ export default function CartPage() {
                 : "Unlocked"}
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={isSubscription} onChange={(e) => setIsSubscription(e.target.checked)} />
-            Subscribe &amp; save (whole cart, where eligible)
-          </label>
           <div className="flex gap-2">
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Discount code" />
             <Button type="button" variant="secondary" onClick={applyCode}>
               Apply
             </Button>
           </div>
-          {user && user.loyaltyPoints >= 500 ? (
-            <div>
-              <label className="text-sm text-[var(--text-muted)]">
-                Redeem points (100 pts = $1) — balance {user.loyaltyPoints}
-              </label>
-              <input
-                type="range"
-                min={0}
-                max={Math.min(user.loyaltyPoints, Math.floor(totals.subtotal * 100))}
-                step={100}
-                value={loyaltyPointsToRedeem}
-                onChange={(e) => setLoyaltyRedemption(Number(e.target.value))}
-                className="mt-2 w-full"
-              />
-              <p className="text-xs text-[var(--text-muted)]">{loyaltyPointsToRedeem} points</p>
-            </div>
-          ) : null}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={bac} onChange={(e) => void toggleBac(e.target.checked)} />
             Add Bacteriostatic Water 30mL for $11.99?
@@ -161,7 +133,7 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">Discounts</span>
-              <span className="font-mono">-{formatCurrency(totals.discountAmount + totals.loyaltyDiscount)}</span>
+              <span className="font-mono">-{formatCurrency(totals.discountAmount)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">Shipping</span>
@@ -172,7 +144,6 @@ export default function CartPage() {
               <span className="font-mono">{formatCurrency(totals.total)}</span>
             </div>
           </div>
-          <p className="text-xs text-[var(--text-muted)]">You will earn ~{totals.pointsToEarn} points after confirmation.</p>
           <Button className="w-full" asChild>
             <Link href="/checkout">Proceed to checkout</Link>
           </Button>

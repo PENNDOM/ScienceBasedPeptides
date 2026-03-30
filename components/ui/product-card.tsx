@@ -18,7 +18,6 @@ export function ProductCard(props: {
   compareAt?: number | null;
   variantId: string;
   size: string;
-  subscriptionEligible: boolean;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const onAdd = () => {
@@ -31,7 +30,6 @@ export function ProductCard(props: {
       price: props.price,
       image: props.image,
       quantity: 1,
-      subscriptionEligible: props.subscriptionEligible,
     };
     addItem(item);
   };

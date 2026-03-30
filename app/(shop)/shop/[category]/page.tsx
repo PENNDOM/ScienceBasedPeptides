@@ -52,7 +52,6 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
               compareAt={p.compare_at as number | null}
               variantId={p.vid as string}
               size={p.size as string}
-              subscriptionEligible={Boolean(p.subscription_eligible)}
             />
           );
         })}

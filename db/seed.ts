@@ -788,5 +788,27 @@ db.prepare(
   "Documentation was clear and the certificate matched the batch labeling in our receiving QC checklist."
 );
 
+db.prepare(
+  `INSERT INTO reviews (id, product_id, user_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, 1, 1)`
+).run(
+  nanoid(),
+  "p_ghk",
+  adminId,
+  5,
+  "Consistent specification records",
+  "Received materials and records were aligned: lot identifiers, purity summary, and report links were all easy to reconcile."
+);
+
+db.prepare(
+  `INSERT INTO reviews (id, product_id, user_id, rating, title, body, is_verified, is_approved) VALUES (?, ?, ?, ?, ?, ?, 1, 1)`
+).run(
+  nanoid(),
+  "p_nad",
+  adminId,
+  4,
+  "Solid packaging and documentation",
+  "Packaging integrity was good on arrival and the accompanying documentation was sufficient for internal receiving and inventory checks."
+);
+
 console.log("Seed complete. Admin:", adminEmail);
 db.close();

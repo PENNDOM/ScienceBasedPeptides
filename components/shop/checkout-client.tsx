@@ -22,8 +22,8 @@ export function CheckoutClient({
 }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const { items, discountData, loyaltyPointsToRedeem, isSubscription, clearCart } = useCartStore();
-  const totals = calculateTotals(items, discountData, loyaltyPointsToRedeem, isSubscription);
+  const { items, discountData, clearCart } = useCartStore();
+  const totals = calculateTotals(items, discountData);
   const [symbol, setSymbol] = useState(options[0]?.symbol ?? "BTC");
   const [guestEmail, setGuestEmail] = useState("");
   const [addr, setAddr] = useState({
@@ -56,8 +56,8 @@ export function CheckoutClient({
       body: JSON.stringify({
         items,
         discount: discountData,
-        loyaltyPointsToRedeem,
-        isSubscription,
+        loyaltyPointsToRedeem: 0,
+        isSubscription: false,
         guestEmail: user ? undefined : email,
         shippingAddress: addr,
         cryptoSymbol: symbol,

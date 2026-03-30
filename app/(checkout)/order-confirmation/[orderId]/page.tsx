@@ -33,9 +33,6 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         <p className="mt-4 break-all">Wallet: {String(order.crypto_wallet_sent_to)}</p>
         {order.crypto_tx_hash ? <p className="mt-4">Tx hash submitted: {String(order.crypto_tx_hash)}</p> : null}
       </div>
-      <p className="mt-6 text-sm text-[var(--text-muted)]">
-        Points after confirmation: ~{String(order.loyalty_points_earned)} (pending admin confirmation).
-      </p>
       <p className="mt-2 text-sm text-[var(--text-muted)]">Typical processing: 1–3 business days after payment confirms.</p>
       <div className="mt-10 flex flex-wrap gap-4">
         <Button asChild>
