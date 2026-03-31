@@ -60,8 +60,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container-shell section-shell max-w-6xl">
-      <h1 className="font-display text-4xl font-semibold tracking-tight">Cart</h1>
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      <h1 className="font-display text-3xl font-semibold">Cart</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           {items.length === 0 ? (
@@ -70,7 +70,7 @@ export default function CartPage() {
             items.map((i) => (
               <div
                 key={i.variantId}
-                className="flex gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-5 shadow-card"
+                className="flex gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-4"
               >
                 <div className="relative h-20 w-20 overflow-hidden rounded-md bg-surface-2">
                   <Image src={i.image} alt="" fill className="object-cover" />
@@ -106,7 +106,7 @@ export default function CartPage() {
             ))
           )}
         </div>
-        <div className="space-y-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6 shadow-card">
+        <div className="space-y-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6">
           <div>
             <p className="text-sm text-[var(--text-muted)]">Free shipping</p>
             <ProgressBar value={totals.subtotal - totals.discountAmount} max={totals.freeShippingThreshold} />

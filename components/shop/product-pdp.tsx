@@ -112,9 +112,9 @@ export function ProductPdp(props: {
   const currentLab = labReports.find((l) => l.isCurrent) ?? labReports[0];
 
   return (
-    <div className="container-shell section-shell grid gap-12 lg:grid-cols-2">
+    <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-2">
       <div className="space-y-4">
-        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 shadow-card">
+        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 shadow-sm">
           <Image
             src={product.images[0] ?? "/placeholder-peptide.svg"}
             alt=""
@@ -131,7 +131,7 @@ export function ProductPdp(props: {
             {product.categoryName}
           </Link>
         </p>
-        <h1 className="font-display mt-2 text-4xl font-semibold tracking-tight md:text-5xl">{product.name}</h1>
+        <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight md:text-5xl">{product.name}</h1>
         {product.scientificName ? (
           <p className="mt-2 font-mono text-sm text-[var(--text-muted)]">{product.scientificName}</p>
         ) : null}
@@ -181,7 +181,7 @@ export function ProductPdp(props: {
           Add to cart
         </Button>
 
-        <Tabs defaultValue="overview" className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6">
+        <Tabs defaultValue="overview" className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-5">
           <TabsList className="flex flex-wrap gap-2 bg-transparent">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="research">Compound overview</TabsTrigger>
@@ -229,7 +229,7 @@ export function ProductPdp(props: {
               <Link
                 key={r.id}
                 href={`/products/${r.slug}`}
-                className="rounded-[var(--radius)] border border-[var(--border)] bg-surface p-5 transition hover:-translate-y-0.5 hover:border-accent/40"
+                className="rounded-[var(--radius)] border border-[var(--border)] bg-surface p-4 transition hover:-translate-y-0.5 hover:border-accent/40"
               >
                 <p className="font-medium">{r.name}</p>
                 <p className="mt-2 font-mono text-sm">{formatCurrency(r.price)}</p>
@@ -242,7 +242,7 @@ export function ProductPdp(props: {
           <h2 className="font-display text-xl font-semibold">Reviews</h2>
           <div className="mt-4 space-y-4">
             {reviews.map((r) => (
-              <div key={r.id} className="rounded-[var(--radius)] border border-[var(--border)] bg-surface p-5">
+              <div key={r.id} className="rounded-[var(--radius)] border border-[var(--border)] p-4">
                 <RatingStars value={r.rating} />
                 {r.title ? <p className="mt-2 font-medium">{r.title}</p> : null}
                 <p className="mt-2 text-sm text-[var(--text-muted)]">{r.body}</p>

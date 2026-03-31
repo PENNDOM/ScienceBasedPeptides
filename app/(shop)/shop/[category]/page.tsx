@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +35,14 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
     .filter(Boolean) as Array<Record<string, unknown>>;
 
   return (
-    <Container className="section-shell">
+    <div className="mx-auto max-w-7xl px-4 py-12">
       <p className="text-sm text-[var(--text-muted)]">
         <Link href="/shop" className="hover:text-accent">
           Shop
         </Link>{" "}
         / {cat?.name ?? category}
       </p>
-      <SectionHeading className="mt-4">{cat?.name ?? "Category"}</SectionHeading>
+      <h1 className="font-display mt-4 text-3xl font-semibold">{cat?.name ?? "Category"}</h1>
       {cat?.description ? (
         <p className="mt-3 max-w-3xl text-sm text-[var(--text-muted)]">{cat.description}</p>
       ) : (
@@ -73,6 +72,6 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
       <div className="mt-12 max-w-3xl">
         <FooterDisclaimer />
       </div>
-    </Container>
+    </div>
   );
 }

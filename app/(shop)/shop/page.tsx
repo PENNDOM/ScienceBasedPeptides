@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export const dynamic = "force-dynamic";
 
@@ -65,22 +64,22 @@ export default async function ShopPage({
   }
 
   return (
-    <Container className="section-shell">
+    <div className="mx-auto max-w-7xl px-4 py-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <SectionHeading>Shop</SectionHeading>
+          <h1 className="font-display text-3xl font-semibold">Shop</h1>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
             Catalog items are supplied for laboratory and analytical research only. Not for human consumption.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-sm">
-          <Link href="/shop" className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1.5 hover:border-accent/40">
+          <Link href="/shop" className="rounded-md border border-[var(--border)] px-3 py-1 hover:border-accent/40">
             All
           </Link>
-          <Link href="/shop?sort=price_asc" className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1.5">
+          <Link href="/shop?sort=price_asc" className="rounded-md border border-[var(--border)] px-3 py-1">
             Price ↑
           </Link>
-          <Link href="/shop?sort=price_desc" className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1.5">
+          <Link href="/shop?sort=price_desc" className="rounded-md border border-[var(--border)] px-3 py-1">
             Price ↓
           </Link>
         </div>
@@ -107,6 +106,6 @@ export default async function ShopPage({
       <div className="mt-12 max-w-3xl">
         <FooterDisclaimer />
       </div>
-    </Container>
+    </div>
   );
 }

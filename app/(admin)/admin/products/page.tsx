@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Array<Record<string, unknown>>>([]);
@@ -13,16 +12,16 @@ export default function AdminProductsPage() {
     })();
   }, []);
   return (
-    <Container className="section-shell max-w-6xl">
+    <div className="mx-auto max-w-6xl px-4 py-12">
       <div className="flex items-center justify-between">
-        <SectionHeading>Products</SectionHeading>
+        <h1 className="font-display text-3xl font-semibold">Products</h1>
         <Link href="/admin/products/new" className="text-accent underline">
           New
         </Link>
       </div>
       <ul className="mt-8 space-y-2">
         {products.map((p) => (
-          <li key={String(p.id)} className="flex justify-between rounded-[var(--radius)] border border-[var(--border)] bg-surface px-4 py-3 shadow-card">
+          <li key={String(p.id)} className="flex justify-between rounded border border-[var(--border)] px-4 py-3">
             <span>{String(p.name)}</span>
             <Link href={`/admin/products/${p.id}/edit`} className="text-accent underline">
               Edit
@@ -30,6 +29,6 @@ export default function AdminProductsPage() {
           </li>
         ))}
       </ul>
-    </Container>
+    </div>
   );
 }

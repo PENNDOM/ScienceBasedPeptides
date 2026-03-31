@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Array<{ id: string; total: number; status: string; created_at: number }>>([]);
@@ -19,14 +18,14 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <Container className="section-shell max-w-4xl">
-      <SectionHeading>Orders</SectionHeading>
+    <div className="mx-auto max-w-4xl px-4 py-12">
+      <h1 className="font-display text-3xl font-semibold">Orders</h1>
       <div className="mt-8 space-y-2">
         {orders.map((o) => (
           <Link
             key={o.id}
             href={`/account/orders/${o.id}`}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-surface px-4 py-3 shadow-card"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-surface px-4 py-3"
           >
             <span className="font-mono">{o.id.slice(0, 8).toUpperCase()}</span>
             <span className="text-sm text-[var(--text-muted)]">{formatDate(o.created_at)}</span>
@@ -35,6 +34,6 @@ export default function OrdersPage() {
           </Link>
         ))}
       </div>
-    </Container>
+    </div>
   );
 }

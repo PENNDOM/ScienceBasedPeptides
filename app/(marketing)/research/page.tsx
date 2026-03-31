@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getMdxSlugs } from "@/lib/mdx";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export default function ResearchHubPage() {
   const slugs = getMdxSlugs("research");
@@ -11,8 +10,8 @@ export default function ResearchHubPage() {
   };
 
   return (
-    <Container className="section-shell max-w-3xl">
-      <SectionHeading>Research library</SectionHeading>
+    <div className="mx-auto max-w-3xl px-4 py-16">
+      <h1 className="font-display text-4xl font-semibold">Research library</h1>
       <p className="mt-4 text-[var(--text-muted)]">
         Technical notes on specifications, COAs, and laboratory documentation. Not medical or regulatory advice.
       </p>
@@ -28,6 +27,6 @@ export default function ResearchHubPage() {
       <div className="mt-16 max-w-3xl">
         <FooterDisclaimer />
       </div>
-    </Container>
+    </div>
   );
 }

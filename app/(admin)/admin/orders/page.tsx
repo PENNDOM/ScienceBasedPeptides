@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 type Order = { id: string; guest_email: string | null; status: string; total: number; created_at: number; user_id: string | null };
 
@@ -30,12 +29,12 @@ export default function AdminOrdersPage() {
   });
 
   return (
-    <Container className="section-shell">
-      <SectionHeading>Orders</SectionHeading>
+    <div className="mx-auto max-w-7xl px-4 py-12">
+      <h1 className="font-display text-3xl font-semibold">Orders</h1>
       <div className="mt-6 flex flex-wrap gap-4">
         <Input placeholder="Search ID or email" value={q} onChange={(e) => setQ(e.target.value)} />
         <select
-          className="h-11 rounded-[var(--radius)] border border-[var(--border)] bg-surface px-3 text-sm"
+          className="h-10 rounded-md border border-[var(--border)] bg-surface-2 px-3 text-sm"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
@@ -46,7 +45,7 @@ export default function AdminOrdersPage() {
           <option value="shipped">shipped</option>
         </select>
       </div>
-      <div className="mt-8 overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-surface p-4 shadow-card">
+      <div className="mt-8 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-[var(--text-muted)]">
@@ -76,6 +75,6 @@ export default function AdminOrdersPage() {
           </tbody>
         </table>
       </div>
-    </Container>
+    </div>
   );
 }

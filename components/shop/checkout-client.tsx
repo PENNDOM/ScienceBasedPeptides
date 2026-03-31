@@ -83,8 +83,8 @@ export function CheckoutClient({
   }
 
   return (
-    <div className="container-shell section-shell max-w-6xl">
-      <h1 className="font-display text-4xl font-semibold tracking-tight">Checkout</h1>
+    <div className="mx-auto max-w-6xl px-4 py-12">
+      <h1 className="font-display text-3xl font-semibold">Checkout</h1>
       {!user ? (
         <p className="mt-2 text-sm text-[var(--text-muted)]">
           <Link href="/login" className="text-accent underline">
@@ -106,7 +106,7 @@ export function CheckoutClient({
             <Input label="Country" value={addr.country} onChange={(e) => setAddr({ ...addr, country: e.target.value })} />
           </div>
         </div>
-        <div className="space-y-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6 shadow-card">
+        <div className="space-y-4 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6">
           <h2 className="font-display text-lg font-semibold">Order summary</h2>
           <ul className="space-y-2 text-sm">
             {items.map((i) => (
@@ -125,7 +125,7 @@ export function CheckoutClient({
         </div>
       </div>
 
-      <div className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6 shadow-card">
+      <div className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-6">
         <h2 className="font-display text-xl font-semibold">Cryptocurrency payment</h2>
         <p className="mt-2 text-sm text-[var(--text-muted)]">Select an asset and send the exact amount shown. Rates refresh from public market data.</p>
         <div className="mt-4 flex flex-wrap gap-2">

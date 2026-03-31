@@ -8,7 +8,6 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { parseJsonArray } from "@/lib/utils";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
-import { Container, Section, SectionHeading } from "@/components/ui/shell";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -38,81 +37,40 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="pb-10">
-      <section className="relative min-h-[760px] overflow-hidden bg-[#050908]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(11,158,139,0.22),transparent_30%),linear-gradient(90deg,#040807_0%,#05100e_38%,#071716_62%,#081514_100%)]" />
-
-        <div className="relative mx-auto max-w-[1440px] px-6 lg:px-12">
-          <div className="grid min-h-[760px] items-center lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="relative z-30 max-w-[620px] pb-20 pt-24">
-              <Badge variant="purity" className="mb-6 inline-flex rounded-full border border-[#19d3bd]/40 bg-[#092420]/70 px-5 py-2 text-sm text-[#22d7c1]">
-              Laboratory research materials · Independent COAs
-              </Badge>
-
-              <h1 className="max-w-[760px] font-display text-[68px] leading-[0.94] tracking-[-0.04em] text-white lg:text-[86px]">
-              High-purity peptide research compounds for laboratory use
-              </h1>
-
-              <p className="mt-7 max-w-[760px] text-[25px] leading-[1.7] text-[#9eafaa]">
-              Independently tested materials with batch documentation and transparent specifications — for qualified
-              research and analytical workflows.
-              </p>
-
-              <div className="mt-10 flex flex-wrap gap-4">
-                <Button asChild className="rounded-[14px] bg-[#18d3be] px-8 py-4 text-[20px] font-medium text-black hover:bg-[#22dcc8]">
-                <Link href="/shop">Shop catalog</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="secondary"
-                  className="rounded-[14px] border border-[#23312d] bg-[#0a0f0e]/80 px-8 py-4 text-[20px] font-medium text-white hover:bg-[#0e1513]"
-                >
-                <Link href="/research">Research library</Link>
-                </Button>
+    <div className="space-y-6 pb-8 md:space-y-10">
+      <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-b from-surface to-bg">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,201,167,0.10),transparent_45%)]" />
+        <div className="mx-auto max-w-7xl px-4 py-20 md:py-28">
+          <Badge variant="purity" className="mb-4">
+            Laboratory research materials · Independent COAs
+          </Badge>
+          <h1 className="font-display max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
+            High-purity peptide research compounds for laboratory use
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg text-[var(--text-muted)]">
+            Independently tested materials with batch documentation and transparent specifications — for qualified
+            research and analytical workflows.
+          </p>
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Button size="lg" asChild>
+              <Link href="/shop">Shop catalog</Link>
+            </Button>
+            <Button size="lg" variant="secondary" asChild>
+              <Link href="/research">Research library</Link>
+            </Button>
+          </div>
+          <div className="mt-12 grid grid-cols-2 gap-4 text-sm text-[var(--text-muted)] md:grid-cols-4">
+            {["Independent lab tested", "Batch-level reporting", "Structured fulfillment", "Research-use compliance"].map((t) => (
+              <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                {t}
               </div>
-
-              <div className="mt-10 flex flex-wrap gap-4">
-              {["Independent lab tested", "Batch-level reporting", "Structured fulfillment", "Research-use compliance"].map((t) => (
-                  <div
-                    key={t}
-                    className="rounded-[14px] border border-[#1a2824] bg-[#09100f]/70 px-5 py-4 text-[18px] text-[#93a39d]"
-                  >
-                  {t}
-                  </div>
-              ))}
-              </div>
-            </div>
-
-            <div className="relative hidden min-h-[760px] lg:block">
-              <img
-                src="/hero-right.png"
-                alt="Peptide research products"
-                className="pointer-events-none absolute bottom-0 right-[-20px] z-10 w-[760px] max-w-none select-none"
-              />
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[120px] bg-gradient-to-r from-[#050908] via-[#050908]/70 to-transparent" />
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="border-y border-[var(--border)] bg-surface section-shell">
-        <Container className="grid gap-4 md:grid-cols-4">
-          {[
-            "Third-party lot verification",
-            "COA documentation with each catalog item",
-            "Cold-chain aware fulfillment process",
-            "Research-use quality controls",
-          ].map((item) => (
-            <div key={item} className="rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 px-4 py-3 text-sm text-[var(--text-muted)]">
-              {item}
-            </div>
-          ))}
-        </Container>
-      </section>
-
-      <Section>
-        <Container>
-          <SectionHeading>Featured catalog</SectionHeading>
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Featured catalog</h2>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((p) => {
             const imgs = parseJsonArray<string>(p.images as string, []);
@@ -132,12 +90,11 @@ export default async function HomePage() {
             );
           })}
         </div>
-        </Container>
-      </Section>
+      </section>
 
-      <section className="border-y border-[var(--border)] bg-surface section-shell">
-        <Container>
-          <SectionHeading>Commonly ordered</SectionHeading>
+      <section className="border-y border-[var(--border)] py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Commonly ordered</h2>
           <div className="mt-8 flex gap-4 overflow-x-auto pb-2">
             {best.map((p) => {
               const imgs = parseJsonArray<string>(p.images as string, []);
@@ -157,13 +114,13 @@ export default async function HomePage() {
               );
             })}
           </div>
-        </Container>
+        </div>
       </section>
 
-      <section className="border-y border-[var(--border)] section-shell">
-        <Container className="grid items-center gap-10 md:grid-cols-2">
+      <section className="border-y border-[var(--border)] py-16">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 md:grid-cols-2">
           <div>
-            <SectionHeading className="md:text-[2.1rem]">Curated comparative research sets</SectionHeading>
+            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Curated comparative research sets</h2>
             <p className="mt-4 text-[var(--text-muted)]">
               Structured bundle configurations for comparative laboratory workflows, with clearly defined component
               composition and catalog-level pricing consistency.
@@ -175,12 +132,11 @@ export default async function HomePage() {
           <div className="relative aspect-video overflow-hidden rounded-[var(--radius)] border border-[var(--border)]">
             <Image src="/placeholder-peptide.svg" alt="" fill className="object-cover" />
           </div>
-        </Container>
+        </div>
       </section>
 
-      <Section>
-        <Container>
-        <SectionHeading>Research procurement workflow</SectionHeading>
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Research procurement workflow</h2>
         <div className="mt-10 grid gap-8 md:grid-cols-3">
           {[
             { t: "Browse", d: "Navigate by category, evaluate specifications, and compare lot-level documentation." },
@@ -195,12 +151,11 @@ export default async function HomePage() {
             </Card>
           ))}
         </div>
-        </Container>
-      </Section>
+      </section>
 
-      <section className="border-t border-[var(--border)] section-shell">
-        <Container>
-          <SectionHeading>What researchers say</SectionHeading>
+      <section className="border-t border-[var(--border)] py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">What researchers say</h2>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {reviews.map((r, i) => (
               <Card key={i}>
@@ -213,12 +168,11 @@ export default async function HomePage() {
               </Card>
             ))}
           </div>
-        </Container>
+        </div>
       </section>
 
-      <Section>
-        <Container>
-        <SectionHeading>Latest research notes</SectionHeading>
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Latest research notes</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {articles.map((a) => (
             <Link
@@ -231,11 +185,10 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
-        </Container>
-      </Section>
+      </section>
 
-      <section className="border-t border-[var(--border)] section-shell">
-        <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
+      <section className="border-t border-[var(--border)] py-16">
+        <div className="mx-auto max-w-3xl px-4 text-center">
           <h2 className="font-display text-2xl font-semibold tracking-tight">Research updates</h2>
           <p className="mt-3 text-sm text-[var(--text-muted)]">
             Occasional emails covering new documentation releases, restock notices, and catalog updates.

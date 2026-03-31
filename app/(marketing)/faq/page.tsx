@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
-import { Container, SectionHeading } from "@/components/ui/shell";
 
 export const metadata: Metadata = { title: "FAQ" };
 
@@ -21,8 +20,8 @@ const faqs = [
 
 export default function FaqPage() {
   return (
-    <Container className="section-shell max-w-3xl">
-      <SectionHeading>FAQ</SectionHeading>
+    <div className="mx-auto max-w-3xl px-4 py-16">
+      <h1 className="font-display text-4xl font-semibold">FAQ</h1>
       <div className="mt-10 space-y-8">
         {faqs.map((f) => (
           <div key={f.q}>
@@ -34,6 +33,6 @@ export default function FaqPage() {
       <div className="mt-16 max-w-3xl">
         <FooterDisclaimer />
       </div>
-    </Container>
+    </div>
   );
 }

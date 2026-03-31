@@ -32,10 +32,10 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-[var(--border)] bg-surface">
-      <div className="container-shell grid gap-12 py-16 md:grid-cols-4">
+    <footer className="mt-16 border-t border-[var(--border)] bg-surface">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4">
         <div>
-          <p className="font-display text-xl font-semibold tracking-tight">
+          <p className="font-display text-lg font-semibold tracking-tight">
             {process.env.NEXT_PUBLIC_SITE_NAME ?? DEFAULT_SITE_DISPLAY_NAME}
           </p>
           <p className="mt-3 text-sm text-[var(--text-muted)]">
@@ -44,11 +44,11 @@ export function Footer() {
         </div>
         {cols.map((c) => (
           <div key={c.title}>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text)]/80">{c.title}</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[var(--text)]/85">{c.title}</p>
             <ul className="mt-3 space-y-2">
               {c.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-[var(--text-muted)] transition hover:text-[var(--text)]">
+                  <Link href={l.href} className="text-sm text-[var(--text-muted)] transition hover:text-accent">
                     {l.label}
                   </Link>
                 </li>
@@ -57,8 +57,8 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--border)] py-6">
-        <div className="container-shell">
+      <div className="border-t border-[var(--border)] px-4 py-6">
+        <div className="mx-auto max-w-7xl">
           <FooterDisclaimer />
         </div>
       </div>

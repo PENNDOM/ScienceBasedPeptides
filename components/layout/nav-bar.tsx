@@ -30,18 +30,18 @@ export function NavBar() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[rgba(4,9,8,0.86)] backdrop-blur-xl">
-      <div className="container-shell flex h-20 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-bg/90 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         <Link href="/" className="font-display text-xl font-semibold tracking-tight text-[var(--text)] md:text-2xl">
           {process.env.NEXT_PUBLIC_SITE_NAME ?? DEFAULT_SITE_DISPLAY_NAME}
         </Link>
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav className="hidden items-center gap-6 md:flex">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               className={cn(
-                "text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text)]",
+                "text-sm font-medium text-[var(--text-muted)] transition hover:text-accent",
                 pathname === l.href && "text-accent"
               )}
             >
@@ -49,7 +49,7 @@ export function NavBar() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {user?.role === "admin" ? (
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin">Admin</Link>
@@ -77,7 +77,7 @@ export function NavBar() {
           </Button>
           <button
             type="button"
-            className="rounded-[var(--radius)] border border-[var(--border)] bg-surface p-2 md:hidden"
+            className="rounded-md p-2 md:hidden"
             aria-label="Menu"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
@@ -86,14 +86,14 @@ export function NavBar() {
         </div>
       </div>
       {mobileOpen ? (
-        <div className="border-t border-[var(--border)] bg-bg px-4 py-4 md:hidden">
+        <div className="border-t border-[var(--border)] bg-bg px-4 py-3 md:hidden">
           <div className="flex flex-col gap-3">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-[var(--radius)] border border-transparent px-3 py-2 text-sm text-[var(--text-muted)] transition hover:border-[var(--border)] hover:text-[var(--text)]"
+                className="text-sm text-[var(--text-muted)]"
               >
                 {l.label}
               </Link>
