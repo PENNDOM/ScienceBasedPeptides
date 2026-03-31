@@ -318,7 +318,7 @@ export function CheckoutClient({
                   </ol>
                 </div>
                 <div className="mt-4 flex flex-1 items-center justify-center rounded-xl border border-white/10 bg-[#101917] p-4">
-                  <CryptoQR className="mx-auto w-full max-w-[300px]" address={selected.walletAddress} qrDataUrl={qrMap[selected.symbol] ?? ""} />
+                  <CryptoQR className="mx-auto w-full max-w-[300px] text-center" address={selected.walletAddress} qrDataUrl={qrMap[selected.symbol] ?? ""} />
                 </div>
               </div>
             ) : null}

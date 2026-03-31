@@ -136,7 +136,7 @@ export function ProductPdp(props: {
   const heroImage = product.images[0] ?? "/placeholder-peptide.svg";
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start">
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-28 pt-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start md:pb-36">
       <div className="space-y-4 md:sticky md:top-24">
         <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[#05070b] shadow-sm">
           <Image

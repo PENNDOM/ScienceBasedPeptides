@@ -4,6 +4,7 @@ import "./globals.css";
 import { NavBar } from "@/components/layout/nav-bar";
 import { Footer } from "@/components/layout/footer";
 import { NewsletterStrip } from "@/components/layout/newsletter-strip";
+import { DecorativeVials } from "@/components/layout/decorative-vials";
 import { AgeGate } from "@/components/ui/age-gate";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -38,11 +39,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AuthProvider>
           <ScrollToTop />
           <AgeGate />
+          <DecorativeVials />
           <NavBar />
-          <main className="flex-1">{children}</main>
-          <NewsletterStrip />
-          <Footer />
-          <CookieConsent />
+          <main className="relative z-10 flex-1">{children}</main>
+          <div className="relative z-10">
+            <NewsletterStrip />
+            <Footer />
+            <CookieConsent />
+          </div>
         </AuthProvider>
       </body>
     </html>

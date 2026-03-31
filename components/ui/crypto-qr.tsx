@@ -11,7 +11,7 @@ export function CryptoQR({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 p-4", className)}>
+    <div className={cn("rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 p-4 text-center", className)}>
       <div className="mx-auto aspect-square w-48 overflow-hidden rounded-md bg-white p-2">
         <Image src={qrDataUrl} alt="" width={200} height={200} unoptimized className="h-full w-full object-contain" />
       </div>

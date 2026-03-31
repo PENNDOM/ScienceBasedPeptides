@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
 import { DEFAULT_SITE_DISPLAY_NAME } from "@/lib/site";
 
@@ -30,9 +31,21 @@ const cols = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+  const footerContentClass = isHomePage
+    ? "mx-auto grid max-w-7xl gap-10 px-4 pt-20 pb-16 md:grid-cols-4 md:pt-20"
+    : "mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4";
+
   return (
-    <footer className="mt-0 border-t border-[var(--border)] bg-surface pt-12">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4">
+    <footer
+      className={
+        isHomePage
+          ? "mt-0 border-t border-transparent bg-transparent pt-0"
+          : "mt-0 border-t border-[var(--border)] bg-surface pt-12"
+      }
+    >
+      <div className={footerContentClass}>
         <div>
           <p className="font-display text-lg font-semibold tracking-tight">
             {process.env.NEXT_PUBLIC_SITE_NAME ?? DEFAULT_SITE_DISPLAY_NAME}
@@ -62,7 +75,7 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--border)] px-4 py-6">
+      <div className={isHomePage ? "border-t border-transparent px-4 py-6" : "border-t border-[var(--border)] px-4 py-6"}>
         <div className="mx-auto max-w-7xl">
           <FooterDisclaimer />
         </div>
