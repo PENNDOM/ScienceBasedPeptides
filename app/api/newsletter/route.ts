@@ -42,9 +42,10 @@ export async function POST(req: Request) {
   });
 
   // Send welcome only when this is a new signup or a re-subscribe.
+  const newlySubscribed = !existing || Number(existing.consent) !== 1;
   if (!existing || Number(existing.consent) !== 1) {
-    void sendNewsletterWelcomeEmail({ to: targetEmail });
+    await sendNewsletterWelcomeEmail({ to: targetEmail });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, newlySubscribed });
 }

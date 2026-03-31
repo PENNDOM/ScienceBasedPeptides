@@ -16,7 +16,8 @@ export function NewsletterForm() {
       body: JSON.stringify({ email, consent: true }),
     });
     if (res.ok) {
-      setMsg("Thanks — you are on the list.");
+      const data = (await res.json().catch(() => ({}))) as { newlySubscribed?: boolean };
+      setMsg(data.newlySubscribed ? "Thanks — you are on the list." : "You're already subscribed.");
       setEmail("");
     } else {
       setMsg("Could not subscribe. Try again.");

@@ -26,7 +26,8 @@ export function NewsletterStrip() {
     });
     setSending(false);
     if (res.ok) {
-      setMsg("You have been signed up for updates.");
+      const data = (await res.json().catch(() => ({}))) as { newlySubscribed?: boolean };
+      setMsg(data.newlySubscribed ? "You have been signed up for updates." : "You are already subscribed to updates.");
       setEmail("");
     } else {
       setMsg("Please enter a valid email address.");

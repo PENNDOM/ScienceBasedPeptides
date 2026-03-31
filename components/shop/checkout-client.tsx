@@ -102,7 +102,8 @@ export function CheckoutClient({
     });
     setNewsletterSending(false);
     if (res.ok) {
-      setNewsletterMsg("You have been signed up for updates.");
+      const data = (await res.json().catch(() => ({}))) as { newlySubscribed?: boolean };
+      setNewsletterMsg(data.newlySubscribed ? "You have been signed up for updates." : "You are already subscribed to updates.");
       setNewsletterEmail("");
     } else {
       setNewsletterMsg("Please enter a valid email address.");
