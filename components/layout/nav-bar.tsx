@@ -47,7 +47,7 @@ export function NavBar() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-[env(safe-area-inset-right)] md:pr-0">
           {user?.role === "admin" ? (
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin">Admin</Link>
@@ -74,7 +74,7 @@ export function NavBar() {
           </Button>
           <button
             type="button"
-            className="rounded-md p-2 md:hidden"
+            className="rounded-xl border border-white/10 bg-surface/80 p-2.5 shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition active:scale-[0.98] md:hidden"
             aria-label="Menu"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
@@ -83,21 +83,29 @@ export function NavBar() {
         </div>
       </div>
       {mobileOpen ? (
-        <div className="border-t border-[var(--border)] bg-bg px-4 py-3 md:hidden">
-          <div className="flex flex-col gap-3">
+        <div
+          className="mobile-menu-backdrop fixed inset-0 z-50 bg-black/60 px-4 pb-6 pt-[calc(env(safe-area-inset-top)+84px)] backdrop-blur-[6px] md:hidden"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="mobile-menu-panel mx-auto w-full max-w-lg rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(12,18,22,0.98),rgba(9,13,16,0.98))] p-3 shadow-[0_22px_50px_rgba(0,0,0,0.44)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col gap-2">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "rounded-md border border-transparent px-3 py-2 text-base font-semibold text-[var(--text-muted)] transition hover:border-accent/30 hover:bg-surface hover:text-[var(--text)]",
+                  "rounded-xl border border-transparent px-4 py-3 text-[15px] font-semibold leading-6 tracking-tight text-[var(--text-muted)] transition hover:border-accent/30 hover:bg-surface hover:text-[var(--text)] active:opacity-85",
                   pathname === l.href && "border-accent/40 bg-accent-muted text-accent"
                 )}
               >
                 {l.label}
               </Link>
             ))}
+            </div>
           </div>
         </div>
       ) : null}

@@ -319,6 +319,7 @@ export default function ReferralsMarketingPage() {
             </Button>
           </div>
         </div>
+        <div className="mt-8 h-px bg-white/10 md:hidden" />
       </section>
     </div>
   );

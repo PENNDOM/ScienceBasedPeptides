@@ -42,7 +42,7 @@ export function NewsletterStrip() {
           ? "relative z-10 bg-surface px-4 py-10 md:py-12"
           : isHomePage
             ? "relative z-20 -mt-10 -mb-10 px-4 md:-mt-12"
-            : "relative z-20 -mt-8 -mb-10 px-4 md:-mt-10"
+            : "relative z-20 mt-4 -mb-10 px-4 md:mt-6"
       }
     >
       <div className="mx-auto max-w-7xl rounded-2xl border border-white/10 bg-[linear-gradient(110deg,#27323a,#2c2d38,#3a3138)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)] md:p-8">
