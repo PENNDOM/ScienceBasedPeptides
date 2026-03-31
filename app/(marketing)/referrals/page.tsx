@@ -80,34 +80,33 @@ const faqs = [
 
 export default function ReferralsMarketingPage() {
   return (
-    <div className="bg-[radial-gradient(circle_at_18%_18%,rgba(24,211,190,0.12),transparent_40%),linear-gradient(180deg,#040908_0%,#05100e_45%,#040908_100%)]">
+    <div className="bg-[#040908]">
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_28%,rgba(24,211,190,0.10),transparent_48%)]" />
-        <div className="mx-auto max-w-7xl px-4 py-20 md:px-6 md:py-28">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_28%,rgba(24,211,190,0.08),transparent_56%)]" />
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-20 text-center md:px-6 md:py-28">
           <p className="inline-flex rounded-full border border-[var(--border)] bg-surface px-4 py-1.5 text-xs uppercase tracking-[0.14em] text-[var(--text-muted)]">
             Affiliate Program
           </p>
-          <h1 className="mt-6 max-w-4xl font-display text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="mt-6 max-w-5xl font-display text-4xl font-semibold tracking-tight md:text-6xl">
             Become a Science Based Peptides Affiliate
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--text-muted)]">
-            Earn on qualified first orders and recurring purchases through transparent affiliate attribution and scheduled
-            payouts.
-          </p>
-          <div className="mt-8 grid max-w-2xl gap-4 sm:grid-cols-2">
+          <div className="mt-10 grid w-full max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { v: "20%", l: "First-order commission" },
               { v: "10%", l: "Recurring commission" },
               { v: "30 days", l: "Referral cookie window" },
               { v: "Monthly", l: "Payout cadence" },
             ].map((s) => (
-              <div key={s.l} className="rounded-[var(--radius)] border border-[var(--border)] bg-surface px-4 py-3">
-                <p className="font-display text-3xl font-semibold tracking-tight">{s.v}</p>
-                <p className="mt-1 text-sm text-[var(--text-muted)]">{s.l}</p>
+              <div
+                key={s.l}
+                className="rounded-[var(--radius)] border border-[var(--border)] bg-surface px-5 py-5"
+              >
+                <p className="font-display text-4xl font-semibold tracking-tight md:text-5xl">{s.v}</p>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">{s.l}</p>
               </div>
             ))}
           </div>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Button size="lg" asChild>
               <Link href="/contact">Become an affiliate</Link>
             </Button>
