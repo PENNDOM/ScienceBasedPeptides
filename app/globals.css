@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f4f6f8;
-  --surface: #ffffff;
-  --surface-2: #f8fafb;
-  --border: #d8dee6;
-  --accent: #125e6d;
-  --accent-hover: #0e4f5c;
-  --accent-muted: rgba(18, 94, 109, 0.09);
-  --text: #101923;
-  --text-muted: #5b6778;
+  --bg: #070b0a;
+  --surface: #0a0f0d;
+  --surface-2: #0d1412;
+  --border: #17302a;
+  --accent: #00c9a7;
+  --accent-hover: #00b896;
+  --accent-muted: rgba(0, 201, 167, 0.14);
+  --text: #e8edf0;
+  --text-muted: #8da69a;
   --danger: #ef4444;
   --warning: #f5c842;
-  --radius: 12px;
+  --radius: 10px;
 }
 
 @layer base {
@@ -30,7 +30,6 @@
     @apply bg-[var(--bg)] text-[var(--text)] font-sans antialiased;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    letter-spacing: 0.01em;
   }
   body::-webkit-scrollbar {
     display: none;

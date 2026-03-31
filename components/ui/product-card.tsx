@@ -35,8 +35,8 @@ export function ProductCard(props: {
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/products/${props.slug}`} className="relative aspect-square bg-[var(--surface-2)]">
+    <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40">
+      <Link href={`/products/${props.slug}`} className="relative aspect-square bg-surface-2">
         <Image
           src={props.image || "/placeholder-peptide.svg"}
           alt=""

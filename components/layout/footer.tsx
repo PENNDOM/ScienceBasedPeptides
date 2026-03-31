@@ -32,7 +32,7 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t border-[var(--border)] bg-[var(--surface)]">
+    <footer className="mt-16 border-t border-[var(--border)] bg-surface">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4">
         <div>
           <p className="font-display text-lg font-semibold tracking-tight">
@@ -48,7 +48,7 @@ export function Footer() {
             <ul className="mt-3 space-y-2">
               {c.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-[var(--text-muted)] transition hover:text-[var(--text)]">
+                  <Link href={l.href} className="text-sm text-[var(--text-muted)] transition hover:text-accent">
                     {l.label}
                   </Link>
                 </li>

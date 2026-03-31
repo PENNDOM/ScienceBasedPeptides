@@ -114,7 +114,7 @@ export function ProductPdp(props: {
   return (
     <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-2">
       <div className="space-y-4">
-        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 shadow-sm">
           <Image
             src={product.images[0] ?? "/placeholder-peptide.svg"}
             alt=""
@@ -181,7 +181,7 @@ export function ProductPdp(props: {
           Add to cart
         </Button>
 
-        <Tabs defaultValue="overview" className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
+        <Tabs defaultValue="overview" className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-surface p-5">
           <TabsList className="flex flex-wrap gap-2 bg-transparent">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="research">Compound overview</TabsTrigger>
@@ -229,7 +229,7 @@ export function ProductPdp(props: {
               <Link
                 key={r.id}
                 href={`/products/${r.slug}`}
-                className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+                className="rounded-[var(--radius)] border border-[var(--border)] bg-surface p-4 transition hover:-translate-y-0.5 hover:border-accent/40"
               >
                 <p className="font-medium">{r.name}</p>
                 <p className="mt-2 font-mono text-sm">{formatCurrency(r.price)}</p>
