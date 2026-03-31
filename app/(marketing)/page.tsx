@@ -37,30 +37,31 @@ export default async function HomePage() {
   ];
 
   return (
-    <div>
-      <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-b from-surface to-bg">
+    <div className="space-y-6 pb-8 md:space-y-10">
+      <section className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(18,94,109,0.10),transparent_45%)]" />
         <div className="mx-auto max-w-7xl px-4 py-20 md:py-28">
           <Badge variant="purity" className="mb-4">
             Laboratory research materials · Independent COAs
           </Badge>
-          <h1 className="font-display max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
-            High-purity peptide research compounds for laboratory use
+          <h1 className="font-display max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
+            Research catalog engineered for analytical precision
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-[var(--text-muted)]">
-            Independently tested materials with batch documentation and transparent specifications — for qualified
-            research and analytical workflows.
+            High-integrity peptide materials with transparent specifications, laboratory documentation, and controlled
+            catalog presentation for qualified research environments.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Button size="lg" asChild>
-              <Link href="/shop">Shop catalog</Link>
+              <Link href="/shop">View catalog</Link>
             </Button>
             <Button size="lg" variant="secondary" asChild>
-              <Link href="/research">Research library</Link>
+              <Link href="/research">Documentation library</Link>
             </Button>
           </div>
           <div className="mt-12 grid grid-cols-2 gap-4 text-sm text-[var(--text-muted)] md:grid-cols-4">
-            {["Independent lab tested", "US warehouse", "Plain packaging", "Batch documentation"].map((t) => (
-              <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-surface/60 px-4 py-3">
+            {["Independent lab tested", "Batch-level reporting", "Structured fulfillment", "Research-use compliance"].map((t) => (
+              <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
                 {t}
               </div>
             ))}
@@ -69,7 +70,7 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold md:text-3xl">Featured</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Featured catalog</h2>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((p) => {
             const imgs = parseJsonArray<string>(p.images as string, []);
@@ -91,9 +92,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-[var(--border)] py-16">
+      <section className="border-y border-[var(--border)] bg-[var(--surface)] py-16">
         <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-display text-2xl font-semibold md:text-3xl">Commonly ordered</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Frequently selected</h2>
           <div className="mt-8 flex gap-4 overflow-x-auto pb-2">
             {best.map((p) => {
               const imgs = parseJsonArray<string>(p.images as string, []);
@@ -119,10 +120,10 @@ export default async function HomePage() {
       <section className="border-y border-[var(--border)] py-16">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 md:grid-cols-2">
           <div>
-            <h2 className="font-display text-2xl font-semibold md:text-3xl">Multi-compound research sets</h2>
+            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Curated comparative research sets</h2>
             <p className="mt-4 text-[var(--text-muted)]">
-              Bundled catalog materials (e.g. BPC-157 with TB-500) for comparative laboratory research — offered at a
-              discount versus separate purchase.
+              Structured bundle configurations for comparative laboratory workflows, with clearly defined component
+              composition and catalog-level pricing consistency.
             </p>
             <Button className="mt-6" asChild>
               <Link href="/bundles">View research sets</Link>
@@ -135,12 +136,12 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold md:text-3xl">How it works</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Research procurement workflow</h2>
         <div className="mt-10 grid gap-8 md:grid-cols-3">
           {[
-            { t: "Browse", d: "Filter by category, compare COAs, and select variants." },
-            { t: "Order", d: "Checkout with crypto instructions and transparent totals." },
-            { t: "Research", d: "Receive materials with batch documentation for your lab." },
+            { t: "Browse", d: "Navigate by category, evaluate specifications, and compare lot-level documentation." },
+            { t: "Order", d: "Place secure orders with transparent totals and clear fulfillment updates." },
+            { t: "Document", d: "Reference batch details, reports, and core material metadata in one place." },
           ].map((s) => (
             <Card key={s.t}>
               <CardContent className="p-6">
@@ -152,9 +153,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-[var(--border)] py-16">
+      <section className="border-t border-[var(--border)] bg-[var(--surface)] py-16">
         <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-display text-2xl font-semibold md:text-3xl">What researchers say</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Research feedback</h2>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {reviews.map((r, i) => (
               <Card key={i}>
@@ -171,13 +172,13 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold md:text-3xl">Latest research notes</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Latest research notes</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {articles.map((a) => (
             <Link
               key={a.slug}
               href={`/research/${a.slug}`}
-              className="rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 p-6 hover:border-accent/40"
+              className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-0.5 hover:shadow-sm"
             >
               <p className="font-medium">{a.title}</p>
               <p className="mt-2 text-sm text-accent">Read →</p>
@@ -186,11 +187,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-[var(--border)] py-16">
+      <section className="border-t border-[var(--border)] bg-[var(--surface)] py-16">
         <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="font-display text-2xl font-semibold">Research updates</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">Research updates</h2>
           <p className="mt-3 text-sm text-[var(--text-muted)]">
-            Occasional emails with new COAs, restock notices, and lab notes. Consent required.
+            Occasional emails covering new documentation releases, restock notices, and catalog updates.
           </p>
           <NewsletterForm />
           <div className="mt-10 text-left">

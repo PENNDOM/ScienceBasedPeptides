@@ -114,12 +114,12 @@ export function ProductPdp(props: {
   return (
     <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-2">
       <div className="space-y-4">
-        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface-2">
+        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-sm">
           <Image
             src={product.images[0] ?? "/placeholder-peptide.svg"}
             alt=""
             fill
-            className="object-cover"
+            className="object-cover transition duration-300 hover:scale-[1.02]"
             priority
           />
         </div>
@@ -131,7 +131,7 @@ export function ProductPdp(props: {
             {product.categoryName}
           </Link>
         </p>
-        <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">{product.name}</h1>
+        <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight md:text-5xl">{product.name}</h1>
         {product.scientificName ? (
           <p className="mt-2 font-mono text-sm text-[var(--text-muted)]">{product.scientificName}</p>
         ) : null}
@@ -147,7 +147,7 @@ export function ProductPdp(props: {
           </div>
         ) : null}
 
-        <div className="mt-6">
+        <div className="mt-8">
           <p className="text-sm font-medium">Variant</p>
           <VariantSelector variants={variantOpts} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
@@ -166,7 +166,7 @@ export function ProductPdp(props: {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-baseline gap-3">
+        <div className="mt-8 flex flex-wrap items-baseline gap-3">
           <span className="font-mono text-3xl">{formatCurrency(displayPrice * qty)}</span>
           {selected.compareAt && selected.compareAt > selected.price ? (
             <span className="font-mono text-lg text-[var(--text-muted)] line-through">
@@ -181,7 +181,7 @@ export function ProductPdp(props: {
           Add to cart
         </Button>
 
-        <Tabs defaultValue="overview" className="mt-10">
+        <Tabs defaultValue="overview" className="mt-12 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
           <TabsList className="flex flex-wrap gap-2 bg-transparent">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="research">Compound overview</TabsTrigger>
@@ -229,7 +229,7 @@ export function ProductPdp(props: {
               <Link
                 key={r.id}
                 href={`/products/${r.slug}`}
-                className="rounded-[var(--radius)] border border-[var(--border)] p-4 hover:border-accent/40"
+                className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
               >
                 <p className="font-medium">{r.name}</p>
                 <p className="mt-2 font-mono text-sm">{formatCurrency(r.price)}</p>

@@ -32,23 +32,23 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-[var(--border)] bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-4">
+    <footer className="mt-16 border-t border-[var(--border)] bg-[var(--surface)]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-4">
         <div>
-          <p className="font-display text-lg font-semibold">
+          <p className="font-display text-lg font-semibold tracking-tight">
             {process.env.NEXT_PUBLIC_SITE_NAME ?? DEFAULT_SITE_DISPLAY_NAME}
           </p>
           <p className="mt-3 text-sm text-[var(--text-muted)]">
-            Independent analytical documentation. US fulfillment. Plain outer packaging for laboratory shipments.
+            Research catalog built for analytical workflows, batch documentation, and consistent specification visibility.
           </p>
         </div>
         {cols.map((c) => (
           <div key={c.title}>
-            <p className="text-sm font-semibold text-[var(--text)]">{c.title}</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[var(--text)]/85">{c.title}</p>
             <ul className="mt-3 space-y-2">
               {c.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-[var(--text-muted)] hover:text-accent">
+                  <Link href={l.href} className="text-sm text-[var(--text-muted)] transition hover:text-[var(--text)]">
                     {l.label}
                   </Link>
                 </li>

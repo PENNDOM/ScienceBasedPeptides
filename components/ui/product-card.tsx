@@ -35,13 +35,13 @@ export function ProductCard(props: {
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface transition hover:border-accent/40">
-      <Link href={`/products/${props.slug}`} className="relative aspect-square bg-surface-2">
+    <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <Link href={`/products/${props.slug}`} className="relative aspect-square bg-[var(--surface-2)]">
         <Image
           src={props.image || "/placeholder-peptide.svg"}
           alt=""
           fill
-          className="object-cover transition group-hover:scale-[1.02]"
+          className="object-cover transition duration-300 group-hover:scale-[1.03]"
           sizes="(max-width:768px) 100vw, 25vw"
         />
         {props.purity != null ? (
@@ -50,10 +50,11 @@ export function ProductCard(props: {
           </div>
         ) : null}
       </Link>
-      <div className="flex flex-1 flex-col p-4">
-        <Link href={`/products/${props.slug}`} className="font-display text-lg font-semibold hover:text-accent">
+      <div className="flex flex-1 flex-col p-5">
+        <Link href={`/products/${props.slug}`} className="font-display text-lg font-semibold tracking-tight hover:text-accent">
           {props.name}
         </Link>
+        <p className="mt-1 text-xs uppercase tracking-wide text-[var(--text-muted)]">{props.size}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="font-mono text-lg text-[var(--text)]">{formatCurrency(props.price)}</span>
           {props.compareAt && props.compareAt > props.price ? (
@@ -62,7 +63,7 @@ export function ProductCard(props: {
             </span>
           ) : null}
         </div>
-        <Button className="mt-4 w-full" type="button" onClick={onAdd}>
+        <Button className="mt-5 w-full" type="button" onClick={onAdd}>
           Add to cart
         </Button>
       </div>
