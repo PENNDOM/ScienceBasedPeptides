@@ -38,15 +38,16 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6 pb-8 md:space-y-10">
-      <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-br from-[#071110] via-[#0a1614] to-[#071110]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_34%,rgba(0,201,167,0.24),transparent_38%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_26%,rgba(255,255,255,0.06),transparent_32%)]" />
-        <div className="relative z-10 mx-auto grid max-w-7xl gap-10 px-4 py-16 md:gap-12 md:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <section className="relative overflow-hidden border-b border-[var(--border)] bg-[#060b0a]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(0,201,167,0.26),transparent_36%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_22%,rgba(79,139,255,0.10),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.02),transparent_35%,rgba(255,255,255,0.03)_60%,transparent)]" />
+        <div className="relative z-10 mx-auto grid min-h-[620px] max-w-7xl gap-12 px-4 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-20">
           <div>
-            <Badge variant="purity" className="mb-4">
+            <Badge variant="purity" className="mb-5">
               Laboratory research materials · Independent COAs
             </Badge>
-            <h1 className="font-display max-w-3xl text-4xl font-semibold leading-[1.04] tracking-tight md:text-6xl">
+            <h1 className="font-display max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tight md:text-6xl">
               High-purity peptide research compounds for laboratory use
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--text-muted)]">
@@ -63,23 +64,50 @@ export default async function HomePage() {
             </div>
             <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 text-sm text-[var(--text-muted)] md:grid-cols-4">
               {["Independent lab tested", "Batch-level reporting", "Structured fulfillment", "Research-use compliance"].map((t) => (
-                <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[rgba(10,15,13,0.82)] px-4 py-3">
+                <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[rgba(10,15,13,0.82)] px-4 py-3 backdrop-blur-sm">
                   {t}
                 </div>
               ))}
             </div>
           </div>
-          <div className="relative hidden lg:block">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-2xl">
-              <Image
-                src="/hero-research-header.png"
-                alt=""
-                fill
-                priority
-                className="object-cover object-[82%_52%]"
-                sizes="42vw"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#081110]/45" />
+
+          <div className="relative order-first lg:order-last">
+            <div className="relative mx-auto aspect-[4/3] max-w-[560px] overflow-hidden rounded-[16px] border border-[var(--border)] bg-[linear-gradient(165deg,#0b1210_0%,#101a17_58%,#0b1210_100%)] shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[rgba(0,201,167,0.17)] blur-3xl" />
+              <div className="pointer-events-none absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-[rgba(79,139,255,0.11)] blur-3xl" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071110] to-transparent" />
+
+              <div className="absolute inset-x-6 top-6 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--text-muted)]">
+                <span>Batch-certified catalog</span>
+                <span>Research panel</span>
+              </div>
+
+              <div className="absolute inset-x-8 bottom-12 grid grid-cols-3 gap-4">
+                {[
+                  { name: "BPC-157", dose: "10mg", cap: "from-slate-400 to-slate-300", glass: "from-[#d7fffa]/35 to-white/5" },
+                  { name: "TB-500", dose: "10mg", cap: "from-blue-500 to-blue-300", glass: "from-[#d2e4ff]/30 to-white/5" },
+                  { name: "Retatrutide", dose: "10mg", cap: "from-red-500 to-red-300", glass: "from-[#ffe0dc]/28 to-white/5" },
+                ].map((v) => (
+                  <div key={v.name} className="relative">
+                    <div className="mx-auto h-[124px] w-[88px] rounded-[24px] border border-white/15 bg-gradient-to-b from-white/20 via-transparent to-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_12px_24px_rgba(0,0,0,0.35)]">
+                      <div className={`mx-auto mt-[-8px] h-3 w-14 rounded-full bg-gradient-to-r ${v.cap}`} />
+                      <div className={`mx-auto mt-2 h-[92px] w-[72px] rounded-[18px] bg-gradient-to-b ${v.glass} p-2`}>
+                        <p className="truncate text-[9px] font-semibold text-white">{v.name}</p>
+                        <p className="mt-1 text-[8px] text-white/80">{v.dose}</p>
+                        <div className="mt-3 h-[28px] rounded-md border border-white/15 bg-black/25" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="absolute right-6 top-20 hidden h-36 w-36 rounded-full border border-white/10 lg:block">
+                <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent" />
+                <div className="absolute left-4 top-10 h-1.5 w-1.5 rounded-full bg-white/70" />
+                <div className="absolute right-5 top-8 h-1.5 w-1.5 rounded-full bg-white/70" />
+                <div className="absolute bottom-5 left-8 h-1.5 w-1.5 rounded-full bg-white/70" />
+                <div className="absolute bottom-8 right-7 h-1.5 w-1.5 rounded-full bg-white/70" />
+              </div>
             </div>
           </div>
         </div>
