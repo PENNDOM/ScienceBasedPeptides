@@ -8,7 +8,7 @@ export default async function CheckoutPage() {
   const qrMap: Record<string, string> = {};
   for (const o of options) {
     try {
-      qrMap[o.symbol] = await generateQRCode(o.walletAddress);
+      qrMap[o.symbol] = await generateQRCode(o.walletAddress, o.symbol);
     } catch {
       qrMap[o.symbol] = "";
     }

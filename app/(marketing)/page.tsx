@@ -130,7 +130,7 @@ export default async function HomePage() {
                 alt="Featured research product cards"
                 width={1600}
                 height={1160}
-                className="h-auto w-full -translate-x-6 scale-[1.22] object-contain object-center drop-shadow-[0_24px_50px_rgba(0,0,0,0.5)] sm:-translate-x-10 sm:scale-[1.28]"
+                className="h-auto w-full max-md:-translate-x-2 md:-translate-x-10 scale-[1.22] object-contain object-center drop-shadow-[0_24px_50px_rgba(0,0,0,0.5)] sm:scale-[1.28]"
                 sizes="(max-width: 1024px) 98vw, 1520px"
                 quality={100}
                 unoptimized
