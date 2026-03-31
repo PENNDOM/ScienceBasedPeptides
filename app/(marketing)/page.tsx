@@ -38,16 +38,25 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6 pb-8 md:space-y-10">
-      <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-b from-surface to-bg">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,201,167,0.10),transparent_45%)]" />
-        <div className="mx-auto max-w-7xl px-4 py-20 md:py-28">
+      <section className="relative min-h-[540px] overflow-hidden border-b border-[var(--border)] md:min-h-[620px]">
+        <Image
+          src="/hero-research-header.png"
+          alt=""
+          fill
+          priority
+          className="object-cover object-[68%_center] md:object-center"
+          sizes="100vw"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#070b0a]/92 via-[#070b0a]/74 to-[#070b0a]/28" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_35%,rgba(0,201,167,0.22),transparent_38%)]" />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-20 md:py-28">
           <Badge variant="purity" className="mb-4">
             Laboratory research materials · Independent COAs
           </Badge>
-          <h1 className="font-display max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="font-display max-w-3xl text-4xl font-semibold leading-[1.04] tracking-tight md:text-6xl">
             High-purity peptide research compounds for laboratory use
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-[var(--text-muted)]">
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--text-muted)]">
             Independently tested materials with batch documentation and transparent specifications — for qualified
             research and analytical workflows.
           </p>
@@ -59,9 +68,9 @@ export default async function HomePage() {
               <Link href="/research">Research library</Link>
             </Button>
           </div>
-          <div className="mt-12 grid grid-cols-2 gap-4 text-sm text-[var(--text-muted)] md:grid-cols-4">
+          <div className="mt-12 grid max-w-3xl grid-cols-2 gap-4 text-sm text-[var(--text-muted)] md:grid-cols-4">
             {["Independent lab tested", "Batch-level reporting", "Structured fulfillment", "Research-use compliance"].map((t) => (
-              <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+              <div key={t} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)]/90 px-4 py-3">
                 {t}
               </div>
             ))}
