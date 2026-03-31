@@ -4,5 +4,6 @@
  */
 export const DEFAULT_SITE_DISPLAY_NAME = "Science Based Peptides";
 export const DEFAULT_SITE_URL = "https://sciencebasedpeptides.com";
-export const DEFAULT_EMAIL_FROM = "orders@sciencebasedpeptides.com";
-export const DEFAULT_ADMIN_EMAIL = "admin@sciencebasedpeptides.com";
+export const DEFAULT_EMAIL_FROM = "Support@sciencebasedpeptides.com";
+export const DEFAULT_ADMIN_EMAIL = "Support@sciencebasedpeptides.com";
+export const DEFAULT_SUPPORT_EMAIL = "Support@sciencebasedpeptides.com";

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { RESEARCH_USE_DISCLAIMER } from "@/lib/compliance";
-import { DEFAULT_SITE_DISPLAY_NAME, DEFAULT_SITE_URL, DEFAULT_EMAIL_FROM } from "@/lib/site";
+import { DEFAULT_SITE_DISPLAY_NAME, DEFAULT_SITE_URL, DEFAULT_SUPPORT_EMAIL } from "@/lib/site";
 
 function getTransporter() {
   return nodemailer.createTransport({
@@ -14,16 +14,17 @@ function getTransporter() {
   });
 }
 
-const FROM = process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || DEFAULT_SITE_DISPLAY_NAME;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL;
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || DEFAULT_SUPPORT_EMAIL;
+const FROM = SUPPORT_EMAIL;
 
 async function send(to: string, subject: string, html: string) {
   if (!process.env.SMTP_HOST) {
     console.log(`[EMAIL SKIPPED - no SMTP config] To: ${to} | Subject: ${subject}`);
     return;
   }
-  await getTransporter().sendMail({ from: FROM, to, subject, html });
+  await getTransporter().sendMail({ from: FROM, to, subject, html, replyTo: SUPPORT_EMAIL });
 }
 
 function layout(content: string): string {
@@ -269,6 +270,84 @@ export async function sendLowStockAlertEmail(adminEmail: string, lines: string[]
     layout(`
     <h2>Low stock</h2>
     <ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
+  `)
+  );
+}
+
+export async function sendSupportIntakeEmail(payload: {
+  type: "contact" | "coa_request";
+  name: string;
+  email: string;
+  orderNumber?: string;
+  message: string;
+  productSlug?: string;
+  productName?: string;
+}) {
+  const subjectPrefix = payload.type === "coa_request" ? "COA Request" : "Contact Request";
+  const subject = `[${SITE_NAME}] ${subjectPrefix} — ${payload.name}`;
+  const details = [
+    `<p><strong>Type:</strong> ${payload.type}</p>`,
+    `<p><strong>Name:</strong> ${payload.name}</p>`,
+    `<p><strong>Email:</strong> ${payload.email}</p>`,
+    payload.orderNumber ? `<p><strong>Order Number:</strong> ${payload.orderNumber}</p>` : "",
+    payload.productName ? `<p><strong>Product:</strong> ${payload.productName}</p>` : "",
+    payload.productSlug ? `<p><strong>Product Slug:</strong> ${payload.productSlug}</p>` : "",
+    `<hr class="divider">`,
+    `<p><strong>Message:</strong></p>`,
+    `<p>${payload.message.replace(/\n/g, "<br/>")}</p>`,
+  ]
+    .filter(Boolean)
+    .join("");
+
+  await send(SUPPORT_EMAIL, subject, layout(details));
+}
+
+export async function sendNewsletterWelcomeEmail(payload: { to: string }) {
+  await send(
+    payload.to,
+    `Welcome to ${SITE_NAME} updates`,
+    layout(`
+    <h2>Welcome to the community</h2>
+    <p>You are now subscribed to ${SITE_NAME} email updates.</p>
+    <p>You can expect occasional updates including:</p>
+    <ul>
+      <li>New product and catalog additions</li>
+      <li>Restock and availability updates</li>
+      <li>Site updates and announcements</li>
+      <li>Relevant promotional campaign notices</li>
+    </ul>
+    <a class="btn" href="${SITE_URL}">Visit ${SITE_NAME}</a>
+    <p style="margin-top:16px;font-size:12px;color:#999;">
+      You can unsubscribe anytime from your account email preferences.
+    </p>
+  `)
+  );
+}
+
+export async function sendNewsletterBroadcastEmail(payload: {
+  to: string;
+  subject: string;
+  headline: string;
+  message: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}) {
+  const cta =
+    payload.ctaLabel && payload.ctaUrl
+      ? `<a class="btn" href="${payload.ctaUrl}">${payload.ctaLabel}</a>`
+      : `<a class="btn" href="${SITE_URL}/shop">Browse Catalog</a>`;
+
+  await send(
+    payload.to,
+    payload.subject,
+    layout(`
+    <h2>${payload.headline}</h2>
+    <p>${payload.message.replace(/\n/g, "<br/>")}</p>
+    ${cta}
+    <p style="margin-top:16px;font-size:12px;color:#999;">
+      You are receiving this because you subscribed to updates from ${SITE_NAME}.
+      To stop receiving promotional updates, unsubscribe in your account email preferences.
+    </p>
   `)
   );
 }

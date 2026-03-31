@@ -14,7 +14,7 @@ export default function RefPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     }).finally(() => {
-      router.replace(`/register?ref=${encodeURIComponent(code)}`);
+      router.replace("/");
     });
   }, [code, router]);
 

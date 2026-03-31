@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { sendSupportIntakeEmail } from "@/lib/email";
 
 const schema = z.object({
   type: z.enum(["contact", "coa_request"]),
@@ -18,8 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Unified support intake endpoint for contact + COA requests.
-  // Mail/helpdesk forwarding can be attached here later.
+  await sendSupportIntakeEmail(parsed.data);
   return NextResponse.json({ ok: true });
 }
 
