@@ -39,18 +39,33 @@ export default function AccountDashboard() {
     return `${window.location.origin}/ref/${code}`;
   }, [data?.account.referralCode, persistedUser?.referralCode]);
 
+  const loadDashboard = async () => {
+    const res = await fetch("/api/account/dashboard", { credentials: "include" });
+    if (!res.ok) return;
+    const payload = (await res.json()) as DashboardPayload;
+    setData(payload);
+  };
+
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/account/dashboard", { credentials: "include" });
-        if (res.ok) {
-          const payload = (await res.json()) as DashboardPayload;
-          setData(payload);
+        if (!cancelled) {
+          await loadDashboard();
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
+    const interval = window.setInterval(() => {
+      void loadDashboard();
+    }, 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, []);
 
   const account = data?.account;

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface AuthUser {
   id: string;
@@ -16,16 +15,11 @@ interface AuthStore {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      user: null,
-      setUser: (user) => set({ user }),
-      logout: () => {
-        void fetch("/api/auth/logout", { method: "POST" });
-        set({ user: null });
-      },
-    }),
-    { name: "peptide-auth" }
-  )
-);
+export const useAuthStore = create<AuthStore>()((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  logout: () => {
+    void fetch("/api/auth/logout", { method: "POST" });
+    set({ user: null });
+  },
+}));

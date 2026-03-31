@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/lib/auth";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const codeSuffix = customAlphabet(CODE_ALPHABET, 6);
+const FIRST_ORDER_COMMISSION_RATE = 0.2;
+const QUALIFYING_ORDER_STATUSES = ["confirmed", "processing", "shipped", "delivered"] as const;
 
 async function ensureReferralCode(userId: string, existingCode: string | null): Promise<string> {
   if (existingCode && existingCode.trim().length > 0) return existingCode;
@@ -51,7 +53,7 @@ export async function GET() {
 
   const referralCode = await ensureReferralCode(user.id, user.referral_code);
 
-  const [orders, clicks, conversions, referrals] = await Promise.all([
+  const [orders, clicks, referrals] = await Promise.all([
     prisma.orders.findMany({
       where: { user_id: user.id },
       orderBy: { created_at: "desc" },
@@ -59,7 +61,6 @@ export async function GET() {
       select: { id: true, status: true, total: true, created_at: true },
     }),
     prisma.referrals.count({ where: { referrer_id: user.id } }),
-    prisma.referrals.count({ where: { referrer_id: user.id, status: "converted" } }),
     prisma.referrals.findMany({
       where: { referrer_id: user.id, referred_user_id: { not: null } },
       select: { referred_user_id: true },
@@ -74,12 +75,39 @@ export async function GET() {
     )
   );
 
-  const referredOrders =
-    referredUserIds.length > 0
-      ? await prisma.orders.count({
-          where: { user_id: { in: referredUserIds } },
-        })
-      : 0;
+  const totalReferrals = referredUserIds.length;
+
+  let conversions = 0;
+  let referredOrders = 0;
+  let estimatedCommissions = 0;
+
+  if (referredUserIds.length > 0) {
+    const [qualifiedOrdersCount, qualifiedOrders] = await Promise.all([
+      prisma.orders.count({
+        where: { user_id: { in: referredUserIds }, status: { in: [...QUALIFYING_ORDER_STATUSES] } },
+      }),
+      prisma.orders.findMany({
+        where: { user_id: { in: referredUserIds }, status: { in: [...QUALIFYING_ORDER_STATUSES] } },
+        select: { user_id: true, total: true, created_at: true },
+        orderBy: [{ user_id: "asc" }, { created_at: "asc" }],
+      }),
+    ]);
+
+    referredOrders = qualifiedOrdersCount;
+
+    const firstOrderByUser = new Map<string, number>();
+    for (const order of qualifiedOrders) {
+      if (!order.user_id || firstOrderByUser.has(order.user_id)) continue;
+      firstOrderByUser.set(order.user_id, Number(order.total));
+    }
+
+    conversions = firstOrderByUser.size;
+    let firstOrderTotal = 0;
+    for (const orderTotal of firstOrderByUser.values()) {
+      firstOrderTotal += orderTotal;
+    }
+    estimatedCommissions = Number((firstOrderTotal * FIRST_ORDER_COMMISSION_RATE).toFixed(2));
+  }
 
   return NextResponse.json({
     account: {
@@ -96,11 +124,11 @@ export async function GET() {
       created_at: Number(o.created_at),
     })),
     referralPerformance: {
-      totalReferrals: clicks,
+      totalReferrals,
       clicks,
       conversions,
       referredOrders,
-      estimatedCommissions: 0,
+      estimatedCommissions,
     },
   });
 }

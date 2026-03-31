@@ -19,10 +19,17 @@ export default function RegisterPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    const referralCodeFromQuery =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref")?.trim() ?? "" : "";
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, referralCode: referralCode || undefined }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        referralCode: referralCode.trim() || referralCodeFromQuery || undefined,
+      }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));

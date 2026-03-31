@@ -4,10 +4,11 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "change-this-to-a-long-random-secret-minimum-32-chars"
 );
+const COOKIE_NAME = "peptide_session_v2";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const token = req.cookies.get("peptide_session")?.value;
+  const token = req.cookies.get(COOKIE_NAME)?.value;
 
   if (pathname.startsWith("/account")) {
     if (!token) {

@@ -11,13 +11,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (!cancelled) setUser(null);
+          return;
+        }
         const data = (await res.json()) as { user: unknown };
         if (!cancelled && data.user) {
           setUser(data.user as never);
         }
       } catch {
-        /* ignore */
+        if (!cancelled) setUser(null);
       }
     })();
     return () => {

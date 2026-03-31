@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 const DEFAULT_JWT_SECRET = "change-this-to-a-long-random-secret-minimum-32-chars";
 const envJwtSecret = process.env.JWT_SECRET?.trim();
 const JWT_SECRET = envJwtSecret && envJwtSecret.length > 0 ? envJwtSecret : DEFAULT_JWT_SECRET;
-const COOKIE_NAME = "peptide_session";
+const COOKIE_NAME = "peptide_session_v2";
 
 export interface JWTPayload {
   userId: string;
@@ -16,7 +16,7 @@ export interface JWTPayload {
 }
 
 export function signToken(payload: Omit<JWTPayload, "iat" | "exp">): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "12h" });
 }
 
 export function verifyToken(token: string): JWTPayload | null {
@@ -41,7 +41,6 @@ export async function setAuthCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
     path: "/",
   });
 }

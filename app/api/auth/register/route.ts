@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
-import { nanoid } from "nanoid";
+import { customAlphabet, nanoid } from "nanoid";
 import { z } from "zod";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, setAuthCookie, signToken } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/email";
 import { attributeRegistration } from "@/lib/referral";
+
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const codeSuffix = customAlphabet(CODE_ALPHABET, 6);
 
 const schema = z.object({
   email: z.string().email(),
@@ -20,6 +24,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const { email, password, name, referralCode } = parsed.data;
+  const cookieStore = await cookies();
+  const referralCodeFromCookie = cookieStore.get("peptide_ref_code")?.value ?? "";
+  const referralClickIdFromCookie = cookieStore.get("peptide_ref_click_id")?.value ?? "";
+  const effectiveReferralCode = (referralCode?.trim() || referralCodeFromCookie.trim()) || undefined;
   const exists = await prisma.users.findFirst({ where: { email: email.toLowerCase() }, select: { id: true } });
   if (exists) {
     return NextResponse.json({ error: "Email already registered" }, { status: 409 });
@@ -32,7 +40,7 @@ export async function POST(req: Request) {
 
   for (let attempt = 0; attempt < 12; attempt += 1) {
     const candidateId = nanoid();
-    const candidateReferralCode = nanoid(10);
+    const candidateReferralCode = `SBP-${codeSuffix()}`;
     const lt = nanoid();
     const seq = nanoid();
     try {
@@ -72,9 +80,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not create account at this time" }, { status: 500 });
   }
 
-  if (referralCode) {
-    await attributeRegistration(id, referralCode);
+  if (effectiveReferralCode) {
+    await attributeRegistration(id, effectiveReferralCode, {
+      referralClickId: referralClickIdFromCookie || null,
+    });
   }
+
+  cookieStore.delete("peptide_ref_code");
+  cookieStore.delete("peptide_ref_click_id");
 
   const token = signToken({ userId: id, email: email.toLowerCase(), role: "customer" });
   await setAuthCookie(token);

@@ -11,24 +11,46 @@ export async function createReferralClick(referrerId: string, referredEmail?: st
   return id;
 }
 
-export async function attributeRegistration(referredUserId: string, referralCode: string): Promise<void> {
+export async function attributeRegistration(
+  referredUserId: string,
+  referralCode: string,
+  opts?: { referralClickId?: string | null }
+): Promise<void> {
   const referrer = await prisma.users.findFirst({
     where: { referral_code: referralCode },
     select: { id: true },
   });
   if (!referrer) return;
+  if (referrer.id === referredUserId) return;
+
   await prisma.users.update({
     where: { id: referredUserId },
     data: { referred_by_id: referrer.id },
   });
-  const latestReferral = await prisma.referrals.findFirst({
+
+  const referralClickId = opts?.referralClickId?.trim();
+  if (referralClickId) {
+    const click = await prisma.referrals.findFirst({
+      where: { id: referralClickId, referrer_id: referrer.id, referred_user_id: null },
+      select: { id: true },
+    });
+    if (click) {
+      await prisma.referrals.update({
+        where: { id: click.id },
+        data: { status: "registered", referred_user_id: referredUserId },
+      });
+      return;
+    }
+  }
+
+  const latestUnclaimedReferral = await prisma.referrals.findFirst({
     where: { referrer_id: referrer.id, referred_user_id: null },
     orderBy: { created_at: "desc" },
     select: { id: true },
   });
-  if (!latestReferral) return;
+  if (!latestUnclaimedReferral) return;
   await prisma.referrals.update({
-    where: { id: latestReferral.id },
+    where: { id: latestUnclaimedReferral.id },
     data: { status: "registered", referred_user_id: referredUserId },
   });
 }
