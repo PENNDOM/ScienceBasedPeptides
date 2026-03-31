@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { Container, SectionHeading } from "@/components/ui/shell";
 
 export const metadata: Metadata = { title: "Terms" };
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 prose prose-invert">
-      <h1 className="font-display text-4xl font-semibold">Terms of service</h1>
+    <Container className="section-shell max-w-3xl prose prose-invert">
+      <SectionHeading>Terms of service</SectionHeading>
       <p className="mt-6 text-[var(--text-muted)]">
         By using this site you agree that products are sold for research use only, not for human consumption, and not
         for veterinary use unless your jurisdiction permits and you maintain appropriate licenses. You are responsible
@@ -15,6 +16,6 @@ export default function TermsPage() {
         For research purposes only. Not for human consumption. These statements have not been evaluated by the FDA.
         This product is not intended to diagnose, treat, cure, or prevent any disease.
       </p>
-    </div>
+    </Container>
   );
 }

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Container, SectionHeading } from "@/components/ui/shell";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   return (
-    <div className="mx-auto max-w-lg px-4 py-16">
-      <h1 className="font-display text-4xl font-semibold">Contact</h1>
+    <Container className="section-shell max-w-lg">
+      <SectionHeading>Contact</SectionHeading>
       <p className="mt-4 text-sm text-[var(--text-muted)]">
         For order-related questions, reference your order ID. General inquiries: use the form below (demo — no backend
         mail without SMTP).
@@ -32,6 +33,6 @@ export default function ContactPage() {
         </div>
         <Button type="submit">{sent ? "Sent" : "Send"}</Button>
       </form>
-    </div>
+    </Container>
   );
 }

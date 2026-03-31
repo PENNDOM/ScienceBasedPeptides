@@ -8,6 +8,7 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { parseJsonArray } from "@/lib/utils";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
+import { Container, Section, SectionHeading } from "@/components/ui/shell";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -37,11 +38,11 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="space-y-6 pb-8 md:space-y-10">
+    <div className="pb-10">
       <section className="relative min-h-[760px] overflow-hidden bg-[#050908]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(11,158,139,0.22),transparent_30%),linear-gradient(90deg,#040807_0%,#05100e_38%,#071716_62%,#081514_100%)]" />
 
-        <div className="relative mx-auto max-w-[1440px] px-8 lg:px-12">
+        <div className="relative mx-auto max-w-[1440px] px-6 lg:px-12">
           <div className="grid min-h-[760px] items-center lg:grid-cols-[0.95fr_1.05fr]">
             <div className="relative z-30 max-w-[620px] pb-20 pt-24">
               <Badge variant="purity" className="mb-6 inline-flex rounded-full border border-[#19d3bd]/40 bg-[#092420]/70 px-5 py-2 text-sm text-[#22d7c1]">
@@ -94,8 +95,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Featured catalog</h2>
+      <section className="border-y border-[var(--border)] bg-surface section-shell">
+        <Container className="grid gap-4 md:grid-cols-4">
+          {[
+            "Third-party lot verification",
+            "COA documentation with each catalog item",
+            "Cold-chain aware fulfillment process",
+            "Research-use quality controls",
+          ].map((item) => (
+            <div key={item} className="rounded-[var(--radius)] border border-[var(--border)] bg-surface-2 px-4 py-3 text-sm text-[var(--text-muted)]">
+              {item}
+            </div>
+          ))}
+        </Container>
+      </section>
+
+      <Section>
+        <Container>
+          <SectionHeading>Featured catalog</SectionHeading>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((p) => {
             const imgs = parseJsonArray<string>(p.images as string, []);
@@ -115,11 +132,12 @@ export default async function HomePage() {
             );
           })}
         </div>
-      </section>
+        </Container>
+      </Section>
 
-      <section className="border-y border-[var(--border)] py-16">
-        <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Commonly ordered</h2>
+      <section className="border-y border-[var(--border)] bg-surface section-shell">
+        <Container>
+          <SectionHeading>Commonly ordered</SectionHeading>
           <div className="mt-8 flex gap-4 overflow-x-auto pb-2">
             {best.map((p) => {
               const imgs = parseJsonArray<string>(p.images as string, []);
@@ -139,13 +157,13 @@ export default async function HomePage() {
               );
             })}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="border-y border-[var(--border)] py-16">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 md:grid-cols-2">
+      <section className="border-y border-[var(--border)] section-shell">
+        <Container className="grid items-center gap-10 md:grid-cols-2">
           <div>
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Curated comparative research sets</h2>
+            <SectionHeading className="md:text-[2.1rem]">Curated comparative research sets</SectionHeading>
             <p className="mt-4 text-[var(--text-muted)]">
               Structured bundle configurations for comparative laboratory workflows, with clearly defined component
               composition and catalog-level pricing consistency.
@@ -157,11 +175,12 @@ export default async function HomePage() {
           <div className="relative aspect-video overflow-hidden rounded-[var(--radius)] border border-[var(--border)]">
             <Image src="/placeholder-peptide.svg" alt="" fill className="object-cover" />
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Research procurement workflow</h2>
+      <Section>
+        <Container>
+        <SectionHeading>Research procurement workflow</SectionHeading>
         <div className="mt-10 grid gap-8 md:grid-cols-3">
           {[
             { t: "Browse", d: "Navigate by category, evaluate specifications, and compare lot-level documentation." },
@@ -176,11 +195,12 @@ export default async function HomePage() {
             </Card>
           ))}
         </div>
-      </section>
+        </Container>
+      </Section>
 
-      <section className="border-t border-[var(--border)] py-16">
-        <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">What researchers say</h2>
+      <section className="border-t border-[var(--border)] section-shell">
+        <Container>
+          <SectionHeading>What researchers say</SectionHeading>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {reviews.map((r, i) => (
               <Card key={i}>
@@ -193,11 +213,12 @@ export default async function HomePage() {
               </Card>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Latest research notes</h2>
+      <Section>
+        <Container>
+        <SectionHeading>Latest research notes</SectionHeading>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {articles.map((a) => (
             <Link
@@ -210,10 +231,11 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
+        </Container>
+      </Section>
 
-      <section className="border-t border-[var(--border)] py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center">
+      <section className="border-t border-[var(--border)] section-shell">
+        <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
           <h2 className="font-display text-2xl font-semibold tracking-tight">Research updates</h2>
           <p className="mt-3 text-sm text-[var(--text-muted)]">
             Occasional emails covering new documentation releases, restock notices, and catalog updates.

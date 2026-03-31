@@ -32,7 +32,7 @@ export const metadata: Metadata = siteMetadata();
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable} h-full`}>
-      <body className="min-h-full flex flex-col font-sans antialiased">
+      <body className="min-h-full bg-bg flex flex-col font-sans antialiased">
         <AuthProvider>
           <AgeGate />
           <NavBar />

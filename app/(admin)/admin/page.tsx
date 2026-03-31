@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { Container, SectionHeading } from "@/components/ui/shell";
 
 export default function AdminDashboard() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -20,8 +21,8 @@ export default function AdminDashboard() {
   const chart = data?.revenueLast30Days as Array<{ day: number; revenue: number }> | undefined;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12">
-      <h1 className="font-display text-3xl font-semibold">Admin</h1>
+    <Container className="section-shell">
+      <SectionHeading>Admin</SectionHeading>
       <div className="mt-8 grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-6">
@@ -90,6 +91,6 @@ export default function AdminDashboard() {
           </ul>
         </div>
       </div>
-    </div>
+    </Container>
   );
 }
