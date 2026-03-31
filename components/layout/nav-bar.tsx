@@ -12,12 +12,10 @@ import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/store/auth-store";
 
 const links = [
+  { href: "/referrals", label: "Referrals" },
   { href: "/shop", label: "Shop" },
-  { href: "/bundles", label: "Research sets" },
-  { href: "/research", label: "Research" },
-  { href: "/protocols", label: "Research overviews" },
-  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/research", label: "Research" },
 ];
 
 export function NavBar() {
