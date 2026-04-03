@@ -5,12 +5,12 @@ export function Disclaimer({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "rounded-[var(--radius)] border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-100/90",
+        "rounded-[var(--radius)] border border-[var(--accent)]/40 bg-[var(--accent-muted)] p-4 text-sm leading-relaxed text-[var(--text)]",
         className
       )}
+      role="note"
     >
-      <p className="font-semibold text-amber-200">Research use only</p>
-      <p className="mt-2 leading-relaxed">{RESEARCH_USE_DISCLAIMER}</p>
+      <p>{RESEARCH_USE_DISCLAIMER}</p>
     </div>
   );
 }
