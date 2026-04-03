@@ -6,7 +6,6 @@ import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/pr
 import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { parseProductMeta } from "@/lib/product-meta";
-import { Badge } from "@/components/ui/badge";
 import { CoaRequestForm } from "@/components/shop/coa-request-form";
 import { Disclaimer } from "@/components/ui/disclaimer";
 
@@ -58,11 +57,6 @@ export default async function ProductResearchPage({ params }: { params: Promise<
             sizes="(max-width: 768px) 100vw, 340px"
             priority
           />
-          {p.purity != null ? (
-            <div className="absolute left-2 top-2 z-[2]">
-              <Badge variant="purity">{p.purity}% purity</Badge>
-            </div>
-          ) : null}
         </div>
         <Disclaimer />
         <div className="mt-1 text-center">

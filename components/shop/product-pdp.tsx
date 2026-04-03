@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { VariantSelector, type VariantOption } from "@/components/ui/variant-selector";
 import { Disclaimer } from "@/components/ui/disclaimer";
-import { Badge } from "@/components/ui/badge";
 import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/lib/cart";
@@ -155,11 +154,6 @@ export function ProductPdp(props: {
             sizes="(max-width: 768px) 100vw, 340px"
             priority
           />
-          {product.purity != null ? (
-            <div className="absolute left-2 top-2 z-[2]">
-              <Badge variant="purity">{product.purity}% purity</Badge>
-            </div>
-          ) : null}
         </div>
         <Disclaimer />
       </div>

@@ -325,26 +325,36 @@ export default async function HomePage() {
               );
             })}
           </div>
-          <div>
-            <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">A More Refined Research Buying Experience</h2>
-            <p className="mt-4 text-sm leading-relaxed text-[var(--text-muted)] md:text-base">
-              This storefront is built to provide a cleaner, more consistent experience across the full catalog - from
-              browsing and product selection to support and policy clarity. Every section is designed to feel
-              intentional, organized, and easy to navigate.
-            </p>
-            <ul className="mt-6 space-y-3 text-sm text-[var(--text)]">
-              {[
-                "Clear product structure",
-                "Consistent variant organization",
-                "Unified support and policy pages",
-                "Built for a smoother customer experience",
-              ].map((point) => (
-                <li key={point} className="flex items-start gap-2.5 leading-relaxed">
-                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="relative grid min-h-0 gap-6 md:min-h-[min(24rem,100%)] md:grid-cols-[minmax(0,1fr)_min(9.5rem)] md:items-stretch lg:grid-cols-[minmax(0,1fr)_min(11rem)]">
+            <div className="relative z-10 min-w-0">
+              <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+                A More Refined Research Buying Experience
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-[var(--text-muted)] md:text-base">
+                This storefront is built to provide a cleaner, more consistent experience across the full catalog - from
+                browsing and product selection to support and policy clarity. Every section is designed to feel
+                intentional, organized, and easy to navigate.
+              </p>
+              <ul className="mt-6 space-y-3 text-sm text-[var(--text)]">
+                {[
+                  "Clear product structure",
+                  "Consistent variant organization",
+                  "Unified support and policy pages",
+                  "Built for a smoother customer experience",
+                ].map((point) => (
+                  <li key={point} className="flex items-start gap-2.5 leading-relaxed">
+                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div
+              className="relative -mx-1 hidden min-h-[14rem] overflow-hidden sm:-mx-0 md:block"
+              aria-hidden
+            >
+              <VialSideDecorations imageUrls={catalogVialDecorUrls} sides="right" fillContainer />
+            </div>
           </div>
         </div>
       </section>

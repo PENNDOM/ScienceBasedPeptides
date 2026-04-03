@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -29,11 +28,6 @@ export function ResearchCard(props: {
           quality={100}
           unoptimized
         />
-        {props.purity != null ? (
-          <div className="absolute left-2 top-2">
-            <Badge variant="purity">{props.purity}% purity</Badge>
-          </div>
-        ) : null}
       </Link>
       <div className="flex flex-1 flex-col p-5">
         <Link
@@ -42,6 +36,9 @@ export function ResearchCard(props: {
         >
           {props.name}
         </Link>
+        {props.purity != null ? (
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{props.purity}% purity</p>
+        ) : null}
         <div className="mt-auto pt-3">
           <Button className="w-full" asChild>
             <Link href={`/research/product/${props.slug}`}>View</Link>

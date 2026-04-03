@@ -44,55 +44,76 @@ export function buildDecorUrlCycle(sourceUrls: string[]): string[] {
   return Array.from({ length: 24 }, (_, i) => urls[i % urls.length]!);
 }
 
-export function VialSideDecorations({ imageUrls }: { imageUrls: string[] }) {
+type VialSides = "both" | "left" | "right";
+
+export function VialSideDecorations({
+  imageUrls,
+  sides = "both",
+  /** When `true`, side strips fill the parent width (use a narrow column for right-only decor). */
+  fillContainer = false,
+}: {
+  imageUrls: string[];
+  sides?: VialSides;
+  fillContainer?: boolean;
+}) {
   const decorImageUrls = buildDecorUrlCycle(imageUrls);
+  const showLeft = sides === "both" || sides === "left";
+  const showRight = sides === "both" || sides === "right";
+
+  const stripW = fillContainer
+    ? "w-full max-w-none"
+    : "w-[min(20%,7.25rem)] lg:w-[min(22%,9.5rem)]";
 
   return (
     <>
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 z-0 hidden w-[min(20%,7.25rem)] select-none md:block lg:w-[min(22%,9.5rem)]"
-        aria-hidden
-      >
-        <div className="relative h-full w-full [mask-image:linear-gradient(to_right,black_50%,transparent)]">
-          {LEFT_DECOR_SLOTS.map((slot, i) => (
-            <div
-              key={`decor-l-${i}`}
-              className="absolute bg-contain bg-center bg-no-repeat opacity-[0.22]"
-              style={{
-                backgroundImage: decorImageUrls[i] ? `url(${decorImageUrls[i]})` : undefined,
-                top: slot.top,
-                left: slot.lateral,
-                width: slot.w,
-                height: slot.h,
-                transform: `rotate(${slot.rot}deg)`,
-              }}
-            />
-          ))}
+      {showLeft ? (
+        <div
+          className={`pointer-events-none absolute inset-y-0 left-0 z-0 hidden select-none md:block ${stripW}`}
+          aria-hidden
+        >
+          <div className="relative h-full w-full [mask-image:linear-gradient(to_right,black_50%,transparent)]">
+            {LEFT_DECOR_SLOTS.map((slot, i) => (
+              <div
+                key={`decor-l-${i}`}
+                className="absolute bg-contain bg-center bg-no-repeat opacity-[0.22]"
+                style={{
+                  backgroundImage: decorImageUrls[i] ? `url(${decorImageUrls[i]})` : undefined,
+                  top: slot.top,
+                  left: slot.lateral,
+                  width: slot.w,
+                  height: slot.h,
+                  transform: `rotate(${slot.rot}deg)`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[min(20%,7.25rem)] select-none md:block lg:w-[min(22%,9.5rem)]"
-        aria-hidden
-      >
-        <div className="relative h-full w-full [mask-image:linear-gradient(to_left,black_50%,transparent)]">
-          {RIGHT_DECOR_SLOTS.map((slot, i) => (
-            <div
-              key={`decor-r-${i}`}
-              className="absolute bg-contain bg-center bg-no-repeat opacity-[0.22]"
-              style={{
-                backgroundImage: decorImageUrls[i + LEFT_DECOR_SLOTS.length]
-                  ? `url(${decorImageUrls[i + LEFT_DECOR_SLOTS.length]})`
-                  : undefined,
-                top: slot.top,
-                right: slot.lateral,
-                width: slot.w,
-                height: slot.h,
-                transform: `rotate(${slot.rot}deg)`,
-              }}
-            />
-          ))}
+      ) : null}
+      {showRight ? (
+        <div
+          className={`pointer-events-none absolute inset-y-0 right-0 z-0 hidden select-none md:block ${stripW}`}
+          aria-hidden
+        >
+          <div className="relative h-full w-full [mask-image:linear-gradient(to_left,black_55%,transparent)]">
+            {RIGHT_DECOR_SLOTS.map((slot, i) => (
+              <div
+                key={`decor-r-${i}`}
+                className="absolute bg-contain bg-center bg-no-repeat opacity-[0.22]"
+                style={{
+                  backgroundImage: decorImageUrls[i + LEFT_DECOR_SLOTS.length]
+                    ? `url(${decorImageUrls[i + LEFT_DECOR_SLOTS.length]})`
+                    : undefined,
+                  top: slot.top,
+                  right: slot.lateral,
+                  width: slot.w,
+                  height: slot.h,
+                  transform: `rotate(${slot.rot}deg)`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }

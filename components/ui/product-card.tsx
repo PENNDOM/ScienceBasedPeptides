@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/lib/cart";
@@ -56,11 +55,6 @@ export function ProductCard(props: {
           unoptimized
           priority={props.priority}
         />
-        {props.purity != null ? (
-          <div className="absolute left-2 top-2">
-            <Badge variant="purity">{props.purity}% purity</Badge>
-          </div>
-        ) : null}
       </Link>
       <div className="flex flex-1 flex-col p-5">
         <Link
@@ -69,6 +63,9 @@ export function ProductCard(props: {
         >
           {props.name}
         </Link>
+        {props.purity != null ? (
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{props.purity}% purity</p>
+        ) : null}
         <div className="mt-auto pt-3">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-lg text-[var(--text)]">{formatCurrency(props.price)}</span>
