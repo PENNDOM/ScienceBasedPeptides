@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
@@ -21,9 +22,9 @@ type Item = {
   slug: string;
   name: string;
   purity: number | null;
-  /** Transparent vial-only asset for this section */
+  /** Showcase vial art (`resolveShowcaseImageUrl`); GHK-Cu matches shopImage */
   image: string;
-  /** Tone-matched shop image for cart consistency */
+  /** Canonical shop/cart URL */
   shopImage: string;
   price: number;
   compareAt: number | null;
@@ -118,6 +119,52 @@ function abbrevPart(segment: string, compactBlend: boolean, tightMultiBlend = fa
     return acronym || s.slice(0, 12);
   }
   return s.length > 14 ? `${s.slice(0, 12)}…` : s;
+}
+
+/** Same fill + crop in the holder for every vial (matches former GHK-Cu treatment). */
+function FeaturedVialThumb(props: { item: Item; active: boolean }) {
+  const { item, active } = props;
+  const img = (
+    <Image
+      src={item.image}
+      alt=""
+      fill
+      className="object-cover object-center"
+      sizes="100px"
+      quality={100}
+      unoptimized
+    />
+  );
+  if (active) {
+    return <div className="relative h-full w-full opacity-95">{img}</div>;
+  }
+  return (
+    <motion.div layoutId={`featured-vial-${item.id}`} transition={spring} className="relative h-full w-full">
+      {img}
+    </motion.div>
+  );
+}
+
+function FeaturedVialHero({ item }: { item: Item }) {
+  return (
+    <motion.div
+      key={`hero-${item.id}`}
+      layoutId={`featured-vial-${item.id}`}
+      transition={spring}
+      className="relative h-full w-full"
+    >
+      <Image
+        src={item.image}
+        alt=""
+        fill
+        className="object-cover object-center"
+        sizes="(max-width: 640px) 240px, 280px"
+        quality={100}
+        unoptimized
+        priority
+      />
+    </motion.div>
+  );
 }
 
 export function FeaturedProductsShowcase({ items }: { items: Item[] }) {
@@ -236,18 +283,7 @@ export function FeaturedProductsShowcase({ items }: { items: Item[] }) {
           </AnimatePresence>
 
           <div className="relative flex h-[300px] w-[240px] shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface-2)] sm:h-[330px] sm:w-[260px] md:h-[360px] md:w-[280px]">
-            <motion.div
-              key={`hero-${selected.id}`}
-              layoutId={`featured-vial-${selected.id}`}
-              transition={spring}
-              className="relative flex h-full w-full items-center justify-center"
-            >
-              <div
-                className="h-full w-full origin-center scale-[1.58] bg-contain bg-center bg-no-repeat sm:scale-[1.68] md:scale-[1.78]"
-                style={{ backgroundImage: `url(${selected.image})` }}
-                aria-label={selected.name}
-              />
-            </motion.div>
+            <FeaturedVialHero key={selected.id} item={selected} />
           </div>
         </div>
 
@@ -268,23 +304,7 @@ export function FeaturedProductsShowcase({ items }: { items: Item[] }) {
                     }`}
                     aria-label={`Select ${item.name}`}
                   >
-                    {active ? (
-                      <div
-                        className="h-full w-full origin-center scale-[1.34] bg-contain bg-center bg-no-repeat opacity-95 sm:scale-[1.38]"
-                        style={{ backgroundImage: `url(${item.image})` }}
-                      />
-                    ) : (
-                      <motion.div
-                        layoutId={`featured-vial-${item.id}`}
-                        transition={spring}
-                        className="flex h-full w-full items-center justify-center"
-                      >
-                        <div
-                          className="h-full w-full origin-center scale-[1.34] bg-contain bg-center bg-no-repeat sm:scale-[1.38]"
-                          style={{ backgroundImage: `url(${item.image})` }}
-                        />
-                      </motion.div>
-                    )}
+                    <FeaturedVialThumb item={item} active={active} />
                   </button>
                   {/* Fixed label slot so 1- vs 2-line names never shift the image holders */}
                   <div className="flex min-h-[2.125rem] w-full max-w-[6.5rem] flex-col items-center justify-start md:min-h-[2.375rem]">

@@ -14,8 +14,8 @@ import { FeaturedProductsShowcase } from "@/components/home/featured-products-sh
 import { ResearchCard } from "@/components/ui/research-card";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
 import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
-import { parseJsonArray } from "@/lib/utils";
 import { resolveShowcaseImageUrl } from "@/lib/showcase-image";
+import { parseJsonArray } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -46,12 +46,15 @@ export default async function HomePage() {
       const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images as string, []), productFiles);
       const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return null;
+      const slug = p.slug as string;
+      /** Showcase PNGs for featured UI; GHK-Cu only: always canonical shop file (showcase asset was wrong). */
+      const image = slug === "ghk-cu" ? primaryImage : resolveShowcaseImageUrl(primaryImage);
       return {
         id: p.id as string,
-        slug: p.slug as string,
+        slug,
         name: p.name as string,
         purity: (p.purity as number | null) ?? null,
-        image: resolveShowcaseImageUrl(primaryImage),
+        image,
         shopImage: primaryImage,
         price: p.price as number,
         compareAt: (p.compare_at as number | null) ?? null,
