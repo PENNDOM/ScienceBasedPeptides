@@ -33,6 +33,20 @@ const EXCLUDED_FROM_FEATURED_SHOWCASE = new Set([
   "tesamorelin",
 ]);
 
+/** Shown in featured carousel even when `is_featured` is not set in DB yet (e.g. new SKUs). */
+const FEATURED_SHOWCASE_EXTRA_SLUGS = new Set([
+  "glow",
+  "klow",
+  "kpv",
+  "igf-1",
+  "aod-9604",
+  "calgrilinitide",
+  "5-amino-1mq",
+  "snap-8",
+  "glutathione",
+  "dsip",
+]);
+
 export default async function HomePage() {
   const allProducts = (await prisma.$queryRawUnsafe(`
       SELECT p.*, v.id as vid, v.price, v.size, v.compare_at, c.slug as category_slug FROM products p
@@ -61,6 +75,7 @@ export default async function HomePage() {
         compareAt: (p.compare_at as number | null) ?? null,
         variantId: p.vid as string,
         size: p.size as string,
+        isFeatured: Number(p.is_featured) === 1,
       };
     })
     .filter(Boolean) as Array<{
@@ -74,10 +89,13 @@ export default async function HomePage() {
     compareAt: number | null;
     variantId: string;
     size: string;
+    isFeatured: boolean;
   }>;
 
   const featuredCarouselItems = featuredCarouselItemsRaw.filter(
-    (item) => !EXCLUDED_FROM_FEATURED_SHOWCASE.has(item.slug),
+    (item) =>
+      (item.isFeatured || FEATURED_SHOWCASE_EXTRA_SLUGS.has(item.slug)) &&
+      !EXCLUDED_FROM_FEATURED_SHOWCASE.has(item.slug),
   );
 
   const featuredIds = featuredCarouselItems.map((i) => i.id);
@@ -97,6 +115,8 @@ export default async function HomePage() {
   }
 
   const featuredCarouselItemsWithVariants = featuredCarouselItems.map((item) => {
+    const { isFeatured, ...itemForShowcase } = item;
+    void isFeatured;
     const rows = variantsByProductId.get(item.id) ?? [];
     const variants =
       rows.length > 0
@@ -116,7 +136,7 @@ export default async function HomePage() {
               isDefault: true,
             },
           ];
-    return { ...item, variants };
+    return { ...itemForShowcase, variants };
   });
   const catalogVialDecorUrls =
     featuredCarouselItems.length > 0 ? featuredCarouselItems.map((item) => item.image) : [];
