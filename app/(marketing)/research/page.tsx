@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { ShopToolbar } from "@/components/shop/shop-toolbar";
 import { ResearchCard } from "@/components/ui/research-card";
@@ -44,13 +46,14 @@ export default async function ResearchHubPage({
     },
   });
   const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
+  const productFiles = listPublicProductFilenames();
 
   const rows = products
     .map((p) => {
       const v = variantByProduct.get(p.id);
       if (!v) return null;
-      const imgs = parseJsonArray<string>(p.images, []);
-      const primaryImage = imgs[0] ?? "/placeholder-peptide.svg";
+      const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
+      const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return null;
       return { ...p, price: v.price, image: primaryImage };
     })
@@ -118,6 +121,7 @@ export default async function ResearchHubPage({
               slug={p.slug as string}
               name={p.name as string}
               purity={p.purity as number | null}
+              imageGradient={getPdpHeroGradient(p.slug as string)}
               image={p.image as string}
             />
           ))}

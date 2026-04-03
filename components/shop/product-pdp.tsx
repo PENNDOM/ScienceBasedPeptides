@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { VariantSelector, type VariantOption } from "@/components/ui/variant-selector";
 import { Disclaimer } from "@/components/ui/disclaimer";
 import { Badge } from "@/components/ui/badge";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/lib/cart";
 import { useCartStore } from "@/store/cart-store";
@@ -18,6 +19,10 @@ import { CoaRequestForm } from "@/components/shop/coa-request-form";
 const RECENT_KEY = "peptide_recently_viewed";
 
 export function ProductPdp(props: {
+  /** Canonical vial URL (matches shop grid). */
+  heroImage: string;
+  /** CSS linear-gradient for hero card background (label “tab” colors). */
+  heroGradient: string;
   product: {
     id: string;
     name: string;
@@ -72,7 +77,7 @@ export function ProductPdp(props: {
     size: string;
   }>;
 }) {
-  const { product, variants, labReports, reviews, related } = props;
+  const { heroImage, heroGradient, product, variants, labReports, reviews, related } = props;
   const [selectedId, setSelectedId] = useState(variants.find((v) => v.stockQty > 0)?.id ?? variants[0]?.id);
   const [qtyInput, setQtyInput] = useState("1");
   const addItem = useCartStore((s) => s.addItem);
@@ -114,7 +119,7 @@ export function ProductPdp(props: {
   }, [product.slug]);
 
   function addToCart() {
-    const img = product.images[0] ?? "/placeholder-peptide.svg";
+    const img = heroImage;
     const item: CartItem = {
       productId: product.id,
       variantId: selected.id,
@@ -133,22 +138,25 @@ export function ProductPdp(props: {
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : null;
 
-  const heroImage = product.images[0] ?? "/placeholder-peptide.svg";
-
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-28 pt-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start md:pb-36">
       <div className="space-y-4 md:sticky md:top-24">
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] shadow-sm">
+        <div
+          className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] shadow-sm"
+          style={{ background: heroGradient }}
+        >
           <Image
             src={heroImage}
             alt={product.name}
             fill
+            unoptimized
+            quality={100}
             className="object-cover object-center transition duration-300 hover:scale-[1.02]"
             sizes="(max-width: 768px) 100vw, 340px"
             priority
           />
           {product.purity != null ? (
-            <div className="absolute left-2 top-2">
+            <div className="absolute left-2 top-2 z-[2]">
               <Badge variant="purity">{product.purity}% purity</Badge>
             </div>
           ) : null}
@@ -299,7 +307,8 @@ export function ProductPdp(props: {
                 slug={r.slug}
                 name={r.name}
                 purity={r.purity}
-                image={r.images[0] ?? "/placeholder-peptide.svg"}
+                imageGradient={getPdpHeroGradient(r.slug)}
+                image={getCanonicalProductImage(r.slug, r.images)}
                 price={r.price}
                 compareAt={r.compareAt}
                 variantId={r.variant_id}

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/lib/cart";
 import { useCartStore } from "@/store/cart-store";
 
@@ -13,6 +13,8 @@ export function ProductCard(props: {
   slug: string;
   name: string;
   purity?: number | null;
+  /** Same tone as PDP hero: vertical gradient behind the vial (lighter → darker). */
+  imageGradient?: string;
   image: string;
   price: number;
   compareAt?: number | null;
@@ -39,7 +41,11 @@ export function ProductCard(props: {
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40">
-      <Link href={`/products/${props.slug}`} className="relative aspect-[3/4] bg-[var(--surface-2)]">
+      <Link
+        href={`/products/${props.slug}`}
+        className={cn("relative aspect-[3/4]", !props.imageGradient && "bg-[var(--surface-2)]")}
+        style={props.imageGradient ? { background: props.imageGradient } : undefined}
+      >
         <Image
           src={props.image || "/placeholder-peptide.svg"}
           alt=""

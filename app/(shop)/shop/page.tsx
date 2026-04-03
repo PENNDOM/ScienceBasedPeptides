@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { ShopToolbar } from "@/components/shop/shop-toolbar";
 
@@ -63,6 +65,7 @@ export default async function ShopPage({
     orderBy: [{ product_id: "asc" }, { display_order: "asc" }],
   });
   const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
+  const productFiles = listPublicProductFilenames();
   const sizesByProduct = new Map<string, string[]>();
   for (const row of allSizes) {
     const next = sizesByProduct.get(row.product_id) ?? [];
@@ -73,8 +76,8 @@ export default async function ShopPage({
     .map((p) => {
       const v = variantByProduct.get(p.id);
       if (!v) return null;
-      const imgs = parseJsonArray<string>(p.images, []);
-      const primaryImage = imgs[0] ?? "/placeholder-peptide.svg";
+      const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
+      const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return null;
       return { ...p, vid: v.id, price: v.price, size: v.size, compare_at: v.compare_at };
     })
@@ -99,7 +102,11 @@ export default async function ShopPage({
       </div>
       <div className="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {mainRows.map((p, index) => {
-          const imgs = parseJsonArray<string>(p.images as string, []);
+          const imgs = mergeProductImagesWithDisk(
+            p.slug as string,
+            parseJsonArray<string>(p.images as string, []),
+            productFiles,
+          );
           return (
             <ProductCard
               key={p.id as string}
@@ -107,7 +114,8 @@ export default async function ShopPage({
               slug={p.slug as string}
               name={p.name as string}
               purity={p.purity as number | null}
-              image={imgs[0] ?? "/placeholder-peptide.svg"}
+              imageGradient={getPdpHeroGradient(p.slug as string)}
+              image={getCanonicalProductImage(p.slug as string, imgs)}
               price={p.price as number}
               compareAt={p.compare_at as number | null}
               variantId={p.vid as string}
@@ -121,7 +129,11 @@ export default async function ShopPage({
       {tailRows.length === 4 ? (
         <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4 xl:mx-auto xl:w-[calc(80%-0.3rem)] xl:grid-cols-4">
           {tailRows.map((p, index) => {
-            const imgs = parseJsonArray<string>(p.images as string, []);
+            const imgs = mergeProductImagesWithDisk(
+              p.slug as string,
+              parseJsonArray<string>(p.images as string, []),
+              productFiles,
+            );
             return (
               <ProductCard
                 key={p.id as string}
@@ -129,7 +141,8 @@ export default async function ShopPage({
                 slug={p.slug as string}
                 name={p.name as string}
                 purity={p.purity as number | null}
-                image={imgs[0] ?? "/placeholder-peptide.svg"}
+                imageGradient={getPdpHeroGradient(p.slug as string)}
+                image={getCanonicalProductImage(p.slug as string, imgs)}
                 price={p.price as number}
                 compareAt={p.compare_at as number | null}
                 variantId={p.vid as string}

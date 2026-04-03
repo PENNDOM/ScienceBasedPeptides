@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage } from "@/lib/product-pdp-theme";
+import { parseJsonArray } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
 import { calculateTotals, type CartItem } from "@/lib/cart";
 import { calculateCryptoAmount, getCryptoOptions } from "@/lib/crypto-payment";
@@ -56,6 +59,7 @@ export async function POST(req: Request) {
     select: { id: true, name: true, slug: true, images: true, subscription_eligible: true },
   });
   const productMap = new Map(products.map((p) => [p.id, p]));
+  const productFiles = listPublicProductFilenames();
   const variantMap = new Map(
     variantRows.map((v) => {
       const p = productMap.get(v.product_id);
@@ -67,12 +71,7 @@ export async function POST(req: Request) {
     if (!v || v.stock_qty < line.quantity) {
       return NextResponse.json({ error: `Stock issue: ${line.name}` }, { status: 400 });
     }
-    let imgs: string[] = [];
-    try {
-      imgs = JSON.parse(v.product.images) as string[];
-    } catch {
-      imgs = [];
-    }
+    const imgs = mergeProductImagesWithDisk(v.product.slug, parseJsonArray<string>(v.product.images, []), productFiles);
     items.push({
       productId: line.productId,
       variantId: line.variantId,
@@ -80,7 +79,7 @@ export async function POST(req: Request) {
       slug: v.product.slug,
       size: v.size,
       price: v.price,
-      image: line.image ?? imgs[0] ?? "/placeholder-peptide.svg",
+      image: line.image ?? getCanonicalProductImage(v.product.slug, imgs),
       quantity: line.quantity,
       subscriptionEligible: Boolean(v.product.subscription_eligible),
     });

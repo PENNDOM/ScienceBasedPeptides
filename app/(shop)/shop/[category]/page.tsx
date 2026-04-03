@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
 
@@ -33,6 +35,7 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
     orderBy: [{ product_id: "asc" }, { display_order: "asc" }],
   });
   const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
+  const productFiles = listPublicProductFilenames();
   const sizesByProduct = new Map<string, string[]>();
   for (const row of allSizes) {
     const next = sizesByProduct.get(row.product_id) ?? [];
@@ -65,7 +68,11 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
       )}
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {rows.map((p) => {
-          const imgs = parseJsonArray<string>(p.images as string, []);
+          const imgs = mergeProductImagesWithDisk(
+            p.slug as string,
+            parseJsonArray<string>(p.images as string, []),
+            productFiles,
+          );
           return (
             <ProductCard
               key={p.id as string}
@@ -73,7 +80,8 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
               slug={p.slug as string}
               name={p.name as string}
               purity={p.purity as number | null}
-              image={imgs[0] ?? "/placeholder-peptide.svg"}
+              imageGradient={getPdpHeroGradient(p.slug as string)}
+              image={getCanonicalProductImage(p.slug as string, imgs)}
               price={p.price as number}
               compareAt={p.compare_at as number | null}
               variantId={p.vid as string}

@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import bcrypt from "bcryptjs";
 import { DEFAULT_ADMIN_EMAIL } from "@/lib/site";
+import { orderedProductImages } from "@/lib/utils";
 
 config({ path: path.join(process.cwd(), ".env.local") });
 
@@ -725,28 +726,33 @@ function loadProductOverrides(): Record<string, ProductOverride> {
 }
 
 function resolveImagesForSlug(slug: string, explicit?: string[]): string[] {
-  if (explicit && explicit.length > 0) return imageSet(...explicit);
-  const publicProducts = path.join(process.cwd(), "public", "products");
-  if (!fs.existsSync(publicProducts)) return [PLACEHOLDER_IMAGE];
-  const files = fs.readdirSync(publicProducts);
-  const preferred: string[] = [];
-  for (const ext of IMAGE_EXTENSIONS) {
-    preferred.push(`${slug}.${ext}`);
-    preferred.push(`${slug}-vial.${ext}`);
-    preferred.push(`${slug}-1.${ext}`);
-  }
-  const picked = new Set<string>();
-  for (const candidate of preferred) {
-    if (files.includes(candidate)) picked.add(`/products/${candidate}`);
-  }
-  for (const file of files.sort()) {
-    const lower = file.toLowerCase();
-    const isImage = IMAGE_EXTENSIONS.some((ext) => lower.endsWith(`.${ext}`));
-    if (isImage && lower.startsWith(`${slug.toLowerCase()}-`)) {
-      picked.add(`/products/${file}`);
-    }
-  }
-  return picked.size > 0 ? Array.from(picked) : [PLACEHOLDER_IMAGE];
+  const raw =
+    explicit && explicit.length > 0
+      ? imageSet(...explicit)
+      : (() => {
+          const publicProducts = path.join(process.cwd(), "public", "products");
+          if (!fs.existsSync(publicProducts)) return [PLACEHOLDER_IMAGE];
+          const files = fs.readdirSync(publicProducts);
+          const preferred: string[] = [];
+          for (const ext of IMAGE_EXTENSIONS) {
+            preferred.push(`${slug}.${ext}`);
+            preferred.push(`${slug}-vial.${ext}`);
+            preferred.push(`${slug}-1.${ext}`);
+          }
+          const picked = new Set<string>();
+          for (const candidate of preferred) {
+            if (files.includes(candidate)) picked.add(`/products/${candidate}`);
+          }
+          for (const file of files.sort()) {
+            const lower = file.toLowerCase();
+            const isImage = IMAGE_EXTENSIONS.some((ext) => lower.endsWith(`.${ext}`));
+            if (isImage && lower.startsWith(`${slug.toLowerCase()}-`)) {
+              picked.add(`/products/${file}`);
+            }
+          }
+          return picked.size > 0 ? Array.from(picked) : [PLACEHOLDER_IMAGE];
+        })();
+  return orderedProductImages(raw);
 }
 
 function mergeProductOverride(product: P, override?: ProductOverride): P {

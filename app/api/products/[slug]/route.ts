@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
 import { parseJsonArray } from "@/lib/utils";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }> }) {
@@ -10,6 +11,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   if (!p) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  const productFiles = listPublicProductFilenames();
   const category = await prisma.categories.findFirst({
     where: { id: p.category_id },
     select: { name: true, slug: true },
@@ -50,7 +52,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       scientificName: p.scientific_name,
       categoryName: category?.name ?? "",
       categorySlug: category?.slug ?? "",
-      images: parseJsonArray<string>(p.images, []),
+      images: mergeProductImagesWithDisk(slug, parseJsonArray<string>(p.images, []), productFiles),
       basePrice: p.base_price,
       comparePriceAt: p.compare_price_at,
       purity: p.purity,

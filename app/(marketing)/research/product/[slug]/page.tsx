@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { parseProductMeta } from "@/lib/product-meta";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +31,10 @@ export default async function ProductResearchPage({ params }: { params: Promise<
     const normalized = raw.toLowerCase();
     return raw.length > 0 && raw !== "[SIZE]" && normalized !== "size";
   });
-  const image = parseJsonArray<string>(p.images, [])[0] ?? "/placeholder-peptide.svg";
+  const productFiles = listPublicProductFilenames();
+  const merged = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
+  const image = getCanonicalProductImage(p.slug as string, merged);
+  const heroGradient = getPdpHeroGradient(p.slug as string);
   const variants = await prisma.variants.findMany({
     where: { product_id: p.id },
     orderBy: { display_order: "asc" },
@@ -39,10 +44,22 @@ export default async function ProductResearchPage({ params }: { params: Promise<
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-28 pt-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start md:pb-36">
       <div className="space-y-4 md:sticky md:top-24">
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] shadow-sm">
-          <Image src={image} alt={p.name} fill className="object-cover object-center" sizes="(max-width: 768px) 100vw, 340px" priority />
+        <div
+          className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] shadow-sm"
+          style={{ background: heroGradient }}
+        >
+          <Image
+            src={image}
+            alt={p.name}
+            fill
+            unoptimized
+            quality={100}
+            className="object-cover object-center"
+            sizes="(max-width: 768px) 100vw, 340px"
+            priority
+          />
           {p.purity != null ? (
-            <div className="absolute left-2 top-2">
+            <div className="absolute left-2 top-2 z-[2]">
               <Badge variant="purity">{p.purity}% purity</Badge>
             </div>
           ) : null}

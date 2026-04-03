@@ -4,16 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function ResearchCard(props: {
   slug: string;
   name: string;
   image: string;
+  imageGradient?: string;
   purity?: number | null;
 }) {
   return (
     <div className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40">
-      <Link href={`/research/product/${props.slug}`} className="relative aspect-[3/4] bg-[var(--surface-2)]">
+      <Link
+        href={`/research/product/${props.slug}`}
+        className={cn("relative aspect-[3/4]", !props.imageGradient && "bg-[var(--surface-2)]")}
+        style={props.imageGradient ? { background: props.imageGradient } : undefined}
+      >
         <Image
           src={props.image || "/placeholder-peptide.svg"}
           alt={props.name}

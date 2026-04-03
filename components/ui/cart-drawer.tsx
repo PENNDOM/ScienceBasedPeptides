@@ -6,6 +6,7 @@ import { Minus, Plus, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getCanonicalProductImage } from "@/lib/product-pdp-theme";
 import { formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { calculateTotals } from "@/lib/cart";
@@ -82,7 +83,7 @@ export function CartDrawer({ open, onOpenChange }: { open: boolean; onOpenChange
         productId: bacWaterProduct.product.id,
         name: bacWaterProduct.product.name,
         slug: bacWaterProduct.product.slug,
-        image: bacWaterProduct.product.images?.[0] ?? "/placeholder-peptide.svg",
+        image: getCanonicalProductImage(bacWaterProduct.product.slug, bacWaterProduct.product.images),
         subscriptionEligible: Boolean(bacWaterProduct.product.subscriptionEligible),
         variantId: variant.id,
         size: variant.size,
@@ -102,7 +103,7 @@ export function CartDrawer({ open, onOpenChange }: { open: boolean; onOpenChange
       productId: recommendation.id,
       name: recommendation.name,
       slug: recommendation.slug,
-      image: recommendation.images?.[0] ?? "/placeholder-peptide.svg",
+      image: getCanonicalProductImage(recommendation.slug, recommendation.images),
       subscriptionEligible: Boolean(recommendation.subscriptionEligible),
       variantId: recommendation.defaultVariant.id,
       size: recommendation.defaultVariant.size,

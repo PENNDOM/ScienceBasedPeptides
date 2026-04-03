@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ProductPdp } from "@/components/shop/product-pdp";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { productJsonLd, siteMetadata } from "@/lib/seo";
 
@@ -49,6 +51,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     p.id
   )) as Array<Record<string, unknown>>;
 
+  const productFiles = listPublicProductFilenames();
+
   const relatedPool = (await prisma.$queryRawUnsafe(
     `SELECT p2.id, p2.name, p2.slug, p2.images, p2.purity, v.price, v.compare_at, v.id AS variant_id, v.size
      FROM products p2
@@ -58,8 +62,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     p.id
   )) as Array<Record<string, unknown>>;
   const relatedWithImagesOnly = relatedPool.filter((item) => {
-    const images = parseJsonArray<string>((item.images as string) ?? "[]", []);
-    const primary = images[0] ?? "/placeholder-peptide.svg";
+    const images = mergeProductImagesWithDisk(
+      item.slug as string,
+      parseJsonArray<string>((item.images as string) ?? "[]", []),
+      productFiles,
+    );
+    const primary = getCanonicalProductImage(item.slug as string, images);
     return primary !== "/placeholder-peptide.svg";
   });
 
@@ -79,6 +87,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const related = pickDeterministicRelated(relatedWithImagesOnly, p.slug as string, 4);
 
+  const mergedImages = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
+  const heroImage = getCanonicalProductImage(p.slug as string, mergedImages);
+  const heroGradient = getPdpHeroGradient(p.slug as string);
+
   const jsonLd = productJsonLd({
     name: p.name as string,
     description: p.short_description || p.description,
@@ -90,6 +102,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ProductPdp
+        heroImage={heroImage}
+        heroGradient={heroGradient}
         product={{
           id: p.id as string,
           name: p.name,
@@ -99,7 +113,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           scientificName: p.scientific_name,
           categoryName: category?.name ?? "",
           categorySlug: category?.slug ?? "",
-          images: parseJsonArray<string>(p.images, []),
+          images: mergedImages,
           purity: p.purity,
           molecularFormula: p.molecular_formula,
           casNumber: p.cas_number,
@@ -136,7 +150,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           id: r.id as string,
           name: r.name as string,
           slug: r.slug as string,
-          images: parseJsonArray<string>(r.images as string, []),
+          images: mergeProductImagesWithDisk(r.slug as string, parseJsonArray<string>(r.images as string, []), productFiles),
           purity: (r.purity as number | null) ?? null,
           price: r.price as number,
           compareAt: (r.compare_at as number | null) ?? null,

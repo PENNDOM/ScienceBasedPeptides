@@ -513,7 +513,7 @@
     "name": "GHK-Cu",
     "short_description": "A copper-binding research compound used in laboratory settings.",
     "description": "GHK-Cu is produced under controlled conditions to maintain consistency and quality for analytical applications.",
-    "images": ["/products/ghk-cu-clean-3.png"],
+    "images": ["/products/ghk-cu-clean-2.png"],
     "variants": [
       {
         "id": "v_ghk_50",
@@ -540,7 +540,7 @@
     ],
     "structure": {
       "batch": "SHR-001",
-      "image_slot": "products/ghk-cu-clean-3.png"
+      "image_slot": "products/ghk-cu-clean-2.png"
     }
   },
   "nad-plus": {

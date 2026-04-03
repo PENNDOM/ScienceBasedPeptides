@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
 import { parseJsonArray } from "@/lib/utils";
 
 export async function GET(req: Request) {
@@ -48,6 +49,7 @@ export async function GET(req: Request) {
   params.push(limit, offset);
 
   const rows = (await prisma.$queryRawUnsafe(sql, ...params)) as Array<Record<string, unknown>>;
+  const productFiles = listPublicProductFilenames();
   const products = rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -56,7 +58,11 @@ export async function GET(req: Request) {
     scientificName: r.scientific_name,
     categorySlug: r.category_slug,
     categoryName: r.category_name,
-    images: parseJsonArray<string>(r.images as string, []),
+    images: mergeProductImagesWithDisk(
+      r.slug as string,
+      parseJsonArray<string>(r.images as string, []),
+      productFiles,
+    ),
     basePrice: r.base_price,
     purity: r.purity,
     isFeatured: Boolean(r.is_featured),

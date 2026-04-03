@@ -12,10 +12,24 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ui/product-card";
 import { FeaturedProductsShowcase } from "@/components/home/featured-products-showcase";
 import { ResearchCard } from "@/components/ui/research-card";
+import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
+import { getCanonicalProductImage, getPdpHeroGradient } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
+import { resolveShowcaseImageUrl } from "@/lib/showcase-image";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+/** Omitted from homepage featured vial carousel until transparent showcase assets are ready (shop unchanged). */
+const EXCLUDED_FROM_FEATURED_SHOWCASE = new Set([
+  "cjc-1295-no-dac",
+  "melanotan-ii",
+  "nad-plus",
+  "retatrutide",
+  "semaglutide",
+  "tb-500",
+  "tesamorelin",
+]);
 
 export default async function HomePage() {
   const allProducts = (await prisma.$queryRawUnsafe(`
@@ -25,17 +39,20 @@ export default async function HomePage() {
       WHERE p.is_active = 1 ORDER BY p.sold_count DESC, p.name ASC
     `)) as Array<Record<string, unknown>>;
 
-  const featuredCarouselItems = allProducts
+  const productFiles = listPublicProductFilenames();
+
+  const featuredCarouselItemsRaw = allProducts
     .map((p) => {
-      const imgs = parseJsonArray<string>(p.images as string, []);
-      const primaryImage = imgs[0] ?? "/placeholder-peptide.svg";
+      const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images as string, []), productFiles);
+      const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return null;
       return {
         id: p.id as string,
         slug: p.slug as string,
         name: p.name as string,
         purity: (p.purity as number | null) ?? null,
-        image: primaryImage,
+        image: resolveShowcaseImageUrl(primaryImage),
+        shopImage: primaryImage,
         price: p.price as number,
         compareAt: (p.compare_at as number | null) ?? null,
         variantId: p.vid as string,
@@ -48,15 +65,59 @@ export default async function HomePage() {
     name: string;
     purity: number | null;
     image: string;
+    shopImage: string;
     price: number;
     compareAt: number | null;
     variantId: string;
     size: string;
   }>;
+
+  const featuredCarouselItems = featuredCarouselItemsRaw.filter(
+    (item) => !EXCLUDED_FROM_FEATURED_SHOWCASE.has(item.slug),
+  );
+
+  const featuredIds = featuredCarouselItems.map((i) => i.id);
+  const featuredVariantsRows =
+    featuredIds.length === 0
+      ? []
+      : await prisma.variants.findMany({
+          where: { product_id: { in: featuredIds } },
+          orderBy: { display_order: "asc" },
+        });
+
+  const variantsByProductId = new Map<string, typeof featuredVariantsRows>();
+  for (const v of featuredVariantsRows) {
+    const list = variantsByProductId.get(v.product_id) ?? [];
+    list.push(v);
+    variantsByProductId.set(v.product_id, list);
+  }
+
+  const featuredCarouselItemsWithVariants = featuredCarouselItems.map((item) => {
+    const rows = variantsByProductId.get(item.id) ?? [];
+    const variants =
+      rows.length > 0
+        ? rows.map((v) => ({
+            id: v.id,
+            size: v.size,
+            price: v.price,
+            compareAt: v.compare_at,
+            isDefault: v.is_default === 1,
+          }))
+        : [
+            {
+              id: item.variantId,
+              size: item.size,
+              price: item.price,
+              compareAt: item.compareAt,
+              isDefault: true,
+            },
+          ];
+    return { ...item, variants };
+  });
   const homepageResearchCards = allProducts
     .filter((p) => {
-      const imgs = parseJsonArray<string>(p.images as string, []);
-      const primaryImage = imgs[0] ?? "/placeholder-peptide.svg";
+      const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images as string, []), productFiles);
+      const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return false;
 
       const name = String(p.name ?? "").toLowerCase();
@@ -96,7 +157,9 @@ export default async function HomePage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
               High-quality research products, clean presentation, and a premium buying experience designed for
-              consistency, clarity, and confidence.
+              consistency, clarity,
+              <br />
+              and confidence.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button size="lg" asChild>
@@ -123,14 +186,14 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex min-h-[420px] items-center justify-center sm:min-h-[520px] lg:justify-end">
-            <div className="relative mx-auto w-full max-w-[1380px] translate-y-8 sm:max-w-[1520px] sm:translate-y-12 lg:mx-0 lg:translate-x-2 lg:translate-y-8">
+          <div className="relative flex min-h-[400px] items-center justify-center sm:min-h-[500px] lg:justify-end">
+            <div className="relative mx-auto w-full max-w-[1180px] translate-y-8 sm:max-w-[1320px] sm:translate-y-12 lg:mx-0 lg:translate-x-3 lg:translate-y-7">
               <Image
-                src="/hero-card-stack-v2.png"
-                alt="Featured research product cards"
-                width={1600}
-                height={1160}
-                className="h-auto w-full max-md:-translate-x-2 md:-translate-x-10 scale-[1.22] object-contain object-center drop-shadow-[0_24px_50px_rgba(0,0,0,0.5)] sm:scale-[1.28]"
+                src="/hero-home-stack.png"
+                alt="Premium research peptide vials — Retatrutide, BPC-157, GHK-Cu, TB-500"
+                width={1024}
+                height={682}
+                className="h-auto w-full max-md:-translate-x-1 md:-translate-x-6 scale-[1.08] object-contain object-center drop-shadow-[0_24px_50px_rgba(0,0,0,0.35)] sm:scale-[1.14]"
                 sizes="(max-width: 1024px) 98vw, 1520px"
                 quality={100}
                 unoptimized
@@ -145,9 +208,18 @@ export default async function HomePage() {
         <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">Featured</p>
         <h2 className={`${sectionTitle} mt-2`}>Featured Products</h2>
         <p className="mt-3 text-sm text-[var(--text-muted)]">Explore some of the most sought-after products in the catalog.</p>
-        <div className="mt-7">
-          <FeaturedProductsShowcase items={featuredCarouselItems} />
-        </div>
+        {featuredCarouselItems.length > 0 ? (
+          <div className="mt-7">
+            <FeaturedProductsShowcase items={featuredCarouselItemsWithVariants} />
+          </div>
+        ) : (
+          <p className="mt-7 text-sm text-[var(--text-muted)]">
+            <Link href="/shop" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
+              Browse the shop
+            </Link>{" "}
+            for the full catalog.
+          </p>
+        )}
       </section>
 
       <section className={sectionWrap}>
@@ -213,7 +285,7 @@ export default async function HomePage() {
           </div>
           <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-2 sm:p-3">
             <Image
-              src="/hero-stack-builder-reference-v2.png"
+              src="/stack-builder-vials.png"
               alt="Build your research stack visual"
               width={1400}
               height={1400}
@@ -231,7 +303,10 @@ export default async function HomePage() {
         <div className="grid gap-8 rounded-3xl border border-[var(--border)] bg-surface p-6 shadow-[0_16px_32px_rgba(0,0,0,0.28)] md:grid-cols-2 md:p-8">
           <div className="grid gap-4 sm:grid-cols-2">
             {homepageResearchCards.map((p) => {
-              const img = parseJsonArray<string>(p.images as string, [])[0] ?? "/placeholder-peptide.svg";
+              const img = getCanonicalProductImage(
+                p.slug as string,
+                mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images as string, []), productFiles),
+              );
               return (
                 <ResearchCard
                   key={`research-card-${p.id as string}`}
@@ -272,8 +347,8 @@ export default async function HomePage() {
         <h2 className={`${sectionTitle} mt-2`}>Bestsellers</h2>
         <div className="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {curatedBestSellers.map((p) => {
-            const imgs = parseJsonArray<string>(p.images as string, []);
-            const primaryImage = imgs[0] ?? "/placeholder-peptide.svg";
+            const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images as string, []), productFiles);
+            const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
             if (primaryImage === "/placeholder-peptide.svg") return null;
             return (
               <ProductCard
@@ -282,6 +357,7 @@ export default async function HomePage() {
                 slug={p.slug as string}
                 name={p.name as string}
                 purity={(p.purity as number | null) ?? null}
+                imageGradient={getPdpHeroGradient(p.slug as string)}
                 image={primaryImage}
                 price={p.price as number}
                 compareAt={(p.compare_at as number | null) ?? null}
