@@ -20,7 +20,8 @@
     "images:featured-selection-knockout": "node scripts/knockout-featured-selection-black.cjs",
     "featured:showcase-auto": "node scripts/generate-featured-showcase-auto.cjs",
     "seed:sync": "tsx db/seed.ts --sync",
-    "db:canonicalize-images": "tsx scripts/canonicalize-product-images.ts"
+    "db:canonicalize-images": "tsx scripts/canonicalize-product-images.ts",
+    "deploy:vercel": "vercel deploy --prod --yes"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
