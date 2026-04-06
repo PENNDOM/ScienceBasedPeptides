@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, DM_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/layout/nav-bar";
+import { DeployStamp } from "@/components/layout/deploy-stamp";
 import { Footer } from "@/components/layout/footer";
 import { NewsletterStrip } from "@/components/layout/newsletter-strip";
 import { DecorativeVials } from "@/components/layout/decorative-vials";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="relative z-10">
             <NewsletterStrip />
             <Footer />
+            <DeployStamp />
             <CookieConsent />
           </div>
         </AuthProvider>
