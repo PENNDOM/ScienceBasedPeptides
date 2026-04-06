@@ -41,6 +41,7 @@ export default async function ProductResearchPage({ params }: { params: Promise<
   const productFiles = listPublicProductFilenames();
   const merged = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
   const image = getCanonicalProductImage(p.slug as string, merged);
+  const heroFrameBg = getProductHeroBackgroundCss(p.slug as string);
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-28 pt-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start md:pb-36">
