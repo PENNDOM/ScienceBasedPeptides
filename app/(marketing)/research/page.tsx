@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
-import { getCanonicalProductImage, getProductHeroBackgroundCss } from "@/lib/product-pdp-theme";
+import {
+  getProductShopGridBackgroundCss,
+  getShopGridImageObjectPosition,
+  getShopGridProductImage,
+} from "@/lib/product-pdp-theme";
 import { mostPopularCatalogOrder, parseJsonArray } from "@/lib/utils";
 import { ShopToolbar } from "@/components/shop/shop-toolbar";
 import { ProductCard } from "@/components/ui/product-card";
@@ -45,15 +49,28 @@ export default async function ResearchHubPage({
       is_default: 1,
     },
   });
+  const allSizes = await prisma.variants.findMany({
+    where: {
+      product_id: { in: products.map((p) => p.id) },
+    },
+    select: { product_id: true, size: true, display_order: true },
+    orderBy: [{ product_id: "asc" }, { display_order: "asc" }],
+  });
   const variantByProduct = new Map(variants.map((v) => [v.product_id, v]));
   const productFiles = listPublicProductFilenames();
+  const sizesByProduct = new Map<string, string[]>();
+  for (const row of allSizes) {
+    const next = sizesByProduct.get(row.product_id) ?? [];
+    if (!next.includes(row.size)) next.push(row.size);
+    sizesByProduct.set(row.product_id, next);
+  }
 
   let rows = products
     .map((p) => {
       const v = variantByProduct.get(p.id);
       if (!v) return null;
       const imgs = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
-      const primaryImage = getCanonicalProductImage(p.slug as string, imgs);
+      const primaryImage = getShopGridProductImage(p.slug as string, imgs);
       if (primaryImage === "/placeholder-peptide.svg") return null;
       return {
         ...p,
@@ -70,12 +87,8 @@ export default async function ResearchHubPage({
   else if (sort === "price_desc") rows.sort((a, b) => Number(b.price) - Number(a.price));
   else if (sort === "most_popular") rows = mostPopularCatalogOrder(rows);
 
-  const hasCenteredTailRow = rows.length > 5 && rows.length % 5 === 4;
-  const mainRows = hasCenteredTailRow ? rows.slice(0, -4) : rows;
-  const tailRows = hasCenteredTailRow ? rows.slice(-4) : [];
-
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 pt-12 md:px-6 md:pb-28">
+    <div className="mx-auto w-full max-w-[1400px] px-4 pb-24 pt-12 md:px-6 md:pb-28">
       <section className="rounded-2xl border border-[var(--border)] bg-[linear-gradient(120deg,rgba(169,212,236,0.2),rgba(243,239,231,0.95),rgba(207,231,245,0.16))] p-6 shadow-[0_16px_40px_rgba(30,26,23,0.1)] md:p-8">
         <h1 className="font-display text-3xl font-semibold tracking-tight md:text-5xl">Research Catalog Overview</h1>
         <p className="mt-3 max-w-4xl text-sm leading-relaxed text-[var(--text-muted)] md:text-base">
@@ -110,45 +123,35 @@ export default async function ResearchHubPage({
         </div>
         <ShopToolbar initialQuery={sp.q ?? ""} initialSort={sort} />
       </div>
-      <div className="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-        {mainRows.map((p, idx) => (
-          <ProductCard
-            key={p.id as string}
-            id={p.id as string}
-            slug={p.slug as string}
-            name={p.name as string}
-            purity={(p.purity as number | null) ?? null}
-            image={p.image as string}
-            price={p.price as number}
-            compareAt={(p.compareAt as number | null) ?? null}
-            variantId={p.variantId as string}
-            size={p.size as string}
-            context="research"
-            priority={idx < 8}
-          />
-        ))}
-      </div>
-      {tailRows.length === 4 ? (
-        <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4 xl:mx-auto xl:w-[calc(80%-0.3rem)] xl:grid-cols-4">
-          {tailRows.map((p, idx) => (
+      <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {rows.map((p, index) => {
+          const slug = p.slug as string;
+          const imgs = mergeProductImagesWithDisk(
+            slug,
+            parseJsonArray<string>(p.images as string, []),
+            productFiles,
+          );
+          return (
             <ProductCard
               key={p.id as string}
               id={p.id as string}
-              slug={p.slug as string}
+              slug={slug}
               name={p.name as string}
               purity={(p.purity as number | null) ?? null}
-              image={p.image as string}
+              image={getShopGridProductImage(slug, imgs)}
               price={p.price as number}
               compareAt={(p.compareAt as number | null) ?? null}
               variantId={p.variantId as string}
               size={p.size as string}
+              variantSizes={sizesByProduct.get(p.id as string)}
               context="research"
-              priority={idx < 4}
-              heroBackgroundCss={getProductHeroBackgroundCss(p.slug as string)}
+              priority={index < 4}
+              heroBackgroundCss={getProductShopGridBackgroundCss(slug)}
+              imageObjectPosition={getShopGridImageObjectPosition(slug)}
             />
-          ))}
-        </div>
-      ) : null}
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
-import { getCanonicalProductImage, getProductHeroBackgroundCss } from "@/lib/product-pdp-theme";
+import {
+  getProductShopGridBackgroundCss,
+  getShopGridImageObjectPosition,
+  getShopGridProductImage,
+} from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { parseProductMeta } from "@/lib/product-meta";
 import { buildPdpSpecificationRows } from "@/lib/product-specifications";
@@ -40,8 +44,9 @@ export default async function ProductResearchPage({ params }: { params: Promise<
   });
   const productFiles = listPublicProductFilenames();
   const merged = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
-  const image = getCanonicalProductImage(p.slug as string, merged);
-  const heroFrameBg = getProductHeroBackgroundCss(p.slug as string);
+  const image = getShopGridProductImage(p.slug as string, merged);
+  const heroFrameBg = getProductShopGridBackgroundCss(p.slug as string);
+  const heroObjectPosition = getShopGridImageObjectPosition(p.slug as string);
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-28 pt-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-start md:pb-36">
@@ -54,7 +59,8 @@ export default async function ProductResearchPage({ params }: { params: Promise<
           <img
             src={image}
             alt={p.name}
-            className="absolute inset-0 z-[1] h-full w-full object-cover object-center [background:none]"
+            className={`absolute inset-0 z-[1] h-full w-full object-cover [background:none] ${heroObjectPosition ? "" : "object-center"}`}
+            style={heroObjectPosition ? { objectPosition: heroObjectPosition } : undefined}
             loading="eager"
             decoding="async"
           />

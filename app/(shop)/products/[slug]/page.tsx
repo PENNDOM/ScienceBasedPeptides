@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ProductPdp } from "@/components/shop/product-pdp";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
-import { getCanonicalProductImage } from "@/lib/product-pdp-theme";
+import { getCanonicalProductImage, getShopGridProductImage } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { productJsonLd, siteMetadata } from "@/lib/seo";
 
@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const related = pickDeterministicRelated(relatedWithImagesOnly, p.slug as string, 4);
 
   const mergedImages = mergeProductImagesWithDisk(p.slug as string, parseJsonArray<string>(p.images, []), productFiles);
-  const heroImage = getCanonicalProductImage(p.slug as string, mergedImages);
+  const heroImage = getShopGridProductImage(p.slug as string, mergedImages);
 
   const jsonLd = productJsonLd({
     name: p.name as string,

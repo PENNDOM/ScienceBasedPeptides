@@ -67,6 +67,7 @@ const SHOP_OPAQUE_STUDIO_SLUGS = new Set(["bpc-157", "retatrutide", "melanotan-i
 const SHOP_OPAQUE_STUDIO_FRAME_CSS =
   "linear-gradient(165deg, #2d2d32 0%, #161618 50%, #0f0f11 100%)";
 
+/** Shop + research catalog grids and product PDP heroes — keeps listing art and PDP in sync. */
 export function getShopGridProductImage(slug: string, mergedImages: string[]): string {
   const override = SHOP_GRID_IMAGE_BY_SLUG_LOWER.get(themeSlugKey(slug));
   if (override) return override;

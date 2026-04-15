@@ -5,7 +5,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { VariantSelector, type VariantOption } from "@/components/ui/variant-selector";
 import { Disclaimer } from "@/components/ui/disclaimer";
-import { getCanonicalProductImage, getProductHeroBackgroundCss } from "@/lib/product-pdp-theme";
+import {
+  getProductShopGridBackgroundCss,
+  getShopGridImageObjectPosition,
+  getShopGridProductImage,
+} from "@/lib/product-pdp-theme";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/lib/cart";
 import { useCartStore } from "@/store/cart-store";
@@ -18,7 +22,7 @@ import { CoaRequestForm } from "@/components/shop/coa-request-form";
 const RECENT_KEY = "peptide_recently_viewed";
 
 export function ProductPdp(props: {
-  /** Canonical vial URL (matches shop grid). */
+  /** Hero URL (matches `/shop` grid — shop listing overrides + canonical). */
   heroImage: string;
   product: {
     id: string;
@@ -132,7 +136,8 @@ export function ProductPdp(props: {
     addItem(item);
   }
 
-  const heroFrameBg = getProductHeroBackgroundCss(product.slug);
+  const heroFrameBg = getProductShopGridBackgroundCss(product.slug);
+  const heroObjectPosition = getShopGridImageObjectPosition(product.slug);
   const currentLab = labReports.find((l) => l.isCurrent) ?? labReports[0];
   const averageRating = reviews.length
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
@@ -149,7 +154,8 @@ export function ProductPdp(props: {
           <img
             src={heroImage}
             alt={product.name}
-            className="absolute inset-0 z-[1] h-full w-full object-cover object-center transition duration-300 hover:scale-[1.02] [background:none]"
+            className={`absolute inset-0 z-[1] h-full w-full object-cover transition duration-300 hover:scale-[1.02] [background:none] ${heroObjectPosition ? "" : "object-center"}`}
+            style={heroObjectPosition ? { objectPosition: heroObjectPosition } : undefined}
             loading="eager"
             decoding="async"
           />
@@ -300,12 +306,13 @@ export function ProductPdp(props: {
                 slug={r.slug}
                 name={r.name}
                 purity={r.purity}
-                image={getCanonicalProductImage(r.slug, r.images)}
+                image={getShopGridProductImage(r.slug, r.images)}
                 price={r.price}
                 compareAt={r.compareAt}
                 variantId={r.variant_id}
                 size={r.size}
-                heroBackgroundCss={getProductHeroBackgroundCss(r.slug)}
+                heroBackgroundCss={getProductShopGridBackgroundCss(r.slug)}
+                imageObjectPosition={getShopGridImageObjectPosition(r.slug)}
               />
             ))}
           </div>
