@@ -22,14 +22,19 @@ export function ProductCard(props: {
   context?: "shop" | "research";
   /** CSS `background` for image frame (e.g. label-matched gradient when PNG has transparent edges). */
   heroBackgroundCss?: string;
+  /** Opaque studio photos on dark cards: `contain` avoids cropping portrait vials. */
+  imageObjectFit?: "cover" | "contain";
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const listing = props.context ?? "shop";
   const productHref =
     listing === "research" ? `/research/product/${props.slug}` : `/products/${props.slug}`;
   const heroBg = props.heroBackgroundCss;
+  const fit = props.imageObjectFit ?? "cover";
   const imageClassName =
-    "absolute inset-0 h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.02] [background:none]";
+    fit === "contain"
+      ? "absolute inset-0 h-full w-full object-contain object-center p-3 transition duration-300 group-hover:scale-[1.02] [background:none]"
+      : "absolute inset-0 h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.02] [background:none]";
   const onAdd = () => {
     const item: CartItem = {
       productId: props.id,

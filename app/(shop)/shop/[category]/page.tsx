@@ -2,7 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ui/product-card";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
-import { getCanonicalProductImage, getProductHeroBackgroundCss } from "@/lib/product-pdp-theme";
+import {
+  getProductShopGridBackgroundCss,
+  getShopGridImageObjectFit,
+  getShopGridProductImage,
+} from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
 import { FooterDisclaimer } from "@/components/ui/disclaimer";
 
@@ -80,13 +84,14 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
               slug={p.slug as string}
               name={p.name as string}
               purity={p.purity as number | null}
-              image={getCanonicalProductImage(p.slug as string, imgs)}
+              image={getShopGridProductImage(p.slug as string, imgs)}
               price={p.price as number}
               compareAt={p.compare_at as number | null}
               variantId={p.vid as string}
               size={p.size as string}
               variantSizes={sizesByProduct.get(p.id as string)}
-              heroBackgroundCss={getProductHeroBackgroundCss(p.slug as string)}
+              heroBackgroundCss={getProductShopGridBackgroundCss(p.slug as string)}
+              imageObjectFit={getShopGridImageObjectFit(p.slug as string)}
             />
           );
         })}

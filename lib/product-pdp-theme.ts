@@ -54,6 +54,32 @@ export function getCanonicalProductImage(slug: string, mergedImages: string[]): 
   return primaryProductImage(mergedImages);
 }
 
+/** Shop listing only (`/shop`, `/shop/[category]`). Homepage featured art is separate — do not use here. */
+const SHOP_GRID_IMAGE_BY_SLUG_LOWER = new Map<string, string>([
+  ["bpc-157", "/products/bpc-157-shop.png"],
+]);
+
+export function getShopGridProductImage(slug: string, mergedImages: string[]): string {
+  const override = SHOP_GRID_IMAGE_BY_SLUG_LOWER.get(themeSlugKey(slug));
+  if (override) return override;
+  return getCanonicalProductImage(slug, mergedImages);
+}
+
+/**
+ * Backdrop for shop product cards when the listing uses an opaque studio shot (matches edges of baked-in background).
+ */
+export function getProductShopGridBackgroundCss(slug: string): string | undefined {
+  const key = themeSlugKey(slug);
+  if (key === "bpc-157") {
+    return "linear-gradient(165deg, #2d2d32 0%, #161618 50%, #0f0f11 100%)";
+  }
+  return getProductHeroBackgroundCss(slug);
+}
+
+export function getShopGridImageObjectFit(slug: string): "cover" | "contain" | undefined {
+  return themeSlugKey(slug) === "bpc-157" ? "contain" : undefined;
+}
+
 /**
  * Optional CSS `background` for the product image frame (shop grid + PDP + research PDP).
  * Use when the vial PNG has transparent edges and the label uses a distinct color story
