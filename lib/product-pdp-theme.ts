@@ -76,8 +76,10 @@ export function getProductShopGridBackgroundCss(slug: string): string | undefine
   return getProductHeroBackgroundCss(slug);
 }
 
-export function getShopGridImageObjectFit(slug: string): "cover" | "contain" | undefined {
-  return themeSlugKey(slug) === "bpc-157" ? "contain" : undefined;
+/** `object-position` for shop cards when `object-cover` should favor the vial in a portrait frame. */
+export function getShopGridImageObjectPosition(slug: string): string | undefined {
+  if (themeSlugKey(slug) === "bpc-157") return "50% 36%";
+  return undefined;
 }
 
 /**

@@ -4,7 +4,7 @@ import { ProductCard } from "@/components/ui/product-card";
 import { listPublicProductFilenames, mergeProductImagesWithDisk } from "@/lib/product-images-server";
 import {
   getProductShopGridBackgroundCss,
-  getShopGridImageObjectFit,
+  getShopGridImageObjectPosition,
   getShopGridProductImage,
 } from "@/lib/product-pdp-theme";
 import { parseJsonArray } from "@/lib/utils";
@@ -55,7 +55,7 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
     .filter(Boolean) as Array<Record<string, unknown>>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12">
+    <div className="mx-auto max-w-[1400px] px-4 py-12">
       <p className="text-sm text-[var(--text-muted)]">
         <Link href="/shop" className="hover:text-accent">
           Shop
@@ -70,7 +70,7 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
           Materials in this category are for laboratory and analytical research only.
         </p>
       )}
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {rows.map((p) => {
           const imgs = mergeProductImagesWithDisk(
             p.slug as string,
@@ -91,7 +91,7 @@ export default async function CategoryShopPage({ params }: { params: Promise<{ c
               size={p.size as string}
               variantSizes={sizesByProduct.get(p.id as string)}
               heroBackgroundCss={getProductShopGridBackgroundCss(p.slug as string)}
-              imageObjectFit={getShopGridImageObjectFit(p.slug as string)}
+              imageObjectPosition={getShopGridImageObjectPosition(p.slug as string)}
             />
           );
         })}

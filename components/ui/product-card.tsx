@@ -22,19 +22,21 @@ export function ProductCard(props: {
   context?: "shop" | "research";
   /** CSS `background` for image frame (e.g. label-matched gradient when PNG has transparent edges). */
   heroBackgroundCss?: string;
-  /** Opaque studio photos on dark cards: `contain` avoids cropping portrait vials. */
-  imageObjectFit?: "cover" | "contain";
+  /** Override object position for portrait studio shots (e.g. center on vial). */
+  imageObjectPosition?: string;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const listing = props.context ?? "shop";
   const productHref =
     listing === "research" ? `/research/product/${props.slug}` : `/products/${props.slug}`;
   const heroBg = props.heroBackgroundCss;
-  const fit = props.imageObjectFit ?? "cover";
-  const imageClassName =
-    fit === "contain"
-      ? "absolute inset-0 h-full w-full object-contain object-center p-3 transition duration-300 group-hover:scale-[1.02] [background:none]"
-      : "absolute inset-0 h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.02] [background:none]";
+  const objectPosition = props.imageObjectPosition;
+  const imageClassName = [
+    "absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] [background:none]",
+    objectPosition ? "" : "object-center",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const onAdd = () => {
     const item: CartItem = {
       productId: props.id,
@@ -61,6 +63,7 @@ export function ProductCard(props: {
           src={props.image || "/placeholder-peptide.svg"}
           alt=""
           className={imageClassName}
+          style={objectPosition ? { objectPosition } : undefined}
           loading={props.priority ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={props.priority ? "high" : undefined}
