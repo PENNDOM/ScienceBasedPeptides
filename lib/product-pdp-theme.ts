@@ -57,7 +57,15 @@ export function getCanonicalProductImage(slug: string, mergedImages: string[]): 
 /** Shop listing only (`/shop`, `/shop/[category]`). Homepage featured art is separate — do not use here. */
 const SHOP_GRID_IMAGE_BY_SLUG_LOWER = new Map<string, string>([
   ["bpc-157", "/products/bpc-157-shop.png"],
+  ["retatrutide", "/products/retatrutide-shop.png"],
+  ["melanotan-ii", "/products/melanotan-ii-shop.png"],
 ]);
+
+/** Opaque portrait studio shots: shared card frame + object-position (same as BPC-157 treatment). */
+const SHOP_OPAQUE_STUDIO_SLUGS = new Set(["bpc-157", "retatrutide", "melanotan-ii"]);
+
+const SHOP_OPAQUE_STUDIO_FRAME_CSS =
+  "linear-gradient(165deg, #2d2d32 0%, #161618 50%, #0f0f11 100%)";
 
 export function getShopGridProductImage(slug: string, mergedImages: string[]): string {
   const override = SHOP_GRID_IMAGE_BY_SLUG_LOWER.get(themeSlugKey(slug));
@@ -70,15 +78,13 @@ export function getShopGridProductImage(slug: string, mergedImages: string[]): s
  */
 export function getProductShopGridBackgroundCss(slug: string): string | undefined {
   const key = themeSlugKey(slug);
-  if (key === "bpc-157") {
-    return "linear-gradient(165deg, #2d2d32 0%, #161618 50%, #0f0f11 100%)";
-  }
+  if (SHOP_OPAQUE_STUDIO_SLUGS.has(key)) return SHOP_OPAQUE_STUDIO_FRAME_CSS;
   return getProductHeroBackgroundCss(slug);
 }
 
 /** `object-position` for shop cards when `object-cover` should favor the vial in a portrait frame. */
 export function getShopGridImageObjectPosition(slug: string): string | undefined {
-  if (themeSlugKey(slug) === "bpc-157") return "50% 36%";
+  if (SHOP_OPAQUE_STUDIO_SLUGS.has(themeSlugKey(slug))) return "50% 36%";
   return undefined;
 }
 
